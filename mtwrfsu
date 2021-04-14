@@ -1,0 +1,27 @@
+#!/bin/bash
+DOW=$(date +%u)
+case $DOW in
+    1)
+        DAY="M"
+        ;;
+    2)
+        DAY="T"
+        ;;
+    3)
+        DAY="W"
+        ;;
+    4)
+        DAY="R"
+        ;;
+    5)
+        DAY="F"
+        ;;
+    6)
+        DAY="S"
+        ;;
+    7)
+        DAY="U"
+        ;;
+esac
+echo $DAY
+
