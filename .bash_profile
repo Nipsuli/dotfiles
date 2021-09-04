@@ -271,3 +271,5 @@ export PATH="$DENO_INSTALL/bin:$PATH"
 export PATH=/Users/niko/.local/share/ponyup/bin:$PATH
 export PATH="/usr/local/opt/python@3.9/bin:$PATH"
 export PATH="/usr/local/Cellar/vim/8.2.2425/bin:$PATH"
+
+eval "$(direnv hook bash)"

@@ -197,6 +197,7 @@ set foldcolumn=1
 
 " row numbers
 set number
+set relativenumber
 
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Files, backups and undo
@@ -333,7 +334,7 @@ fun! CleanExtraSpaces()
 endfun
 
 if has("autocmd")
-    autocmd BufWritePre *.txt,*.js,*.py,*.wiki,*.sh,*.coffee :call CleanExtraSpaces()
+    autocmd BufWritePre *.txt,*.js,*.py,*.wiki,*.sh,*.coffee,*.ts :call CleanExtraSpaces()
 endif
 
 
@@ -458,6 +459,9 @@ Plug 'ionide/Ionide-vim', {
 Plug 'Shougo/deoplete.nvim'
 Plug 'roxma/nvim-yarp'
 Plug 'roxma/vim-hug-neovim-rpc'
+
+" Plug 'tpope/vim-surround'
+" Plug 'tpope/vim-commentary'
 
 call plug#end()
 
@@ -600,6 +604,10 @@ set ffs=unix,dos,mac
 " sts = softtabstop (the number of spaces to use when expanding tabs)
 autocmd FileType javascript setlocal et ts=2 sts=2 sw=2
 autocmd FileType typescript setlocal et ts=2 sts=2 sw=2
+autocmd FileType typescriptreact setlocal et ts=2 sts=2 sw=2
 autocmd FileType jsonnet setlocal et ts=2 sts=2 sw=2
 autocmd FileType yaml setlocal et ts=2 sts=2 sw=2
 autocmd FileType sql setlocal et ts=2 sts=2 sw=2
+
+" set filetypes as typescriptreact from vim-jsx-typescript
+autocmd BufNewFile,BufRead *.tsx,*.jsx set filetype=typescriptreact
