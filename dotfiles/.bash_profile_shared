@@ -1,64 +1,17 @@
-# currently bit messy due stuff added by different installers :/
-export PATH=/usr/local/bin:$PATH
+# Some basics
+export EDITOR='vim'
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
-export EDITOR='vim'
+# always prefer /usr/local/bin over other locations
+export PATH=/usr/local/bin:$PATH
+# but ~/bin should be the last place to look
 export PATH=$PATH:$HOME/bin/
 
 # Let's do vim bindings in bash as well
-shopt -s -o vi
+# shopt -s -o vi # on older mac bash
+set -o vi
 
-# for prompt:
-# get current branch in git repo
-function parse_git_branch() {
-	BRANCH=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
-	if [ ! "${BRANCH}" == "" ]
-	then
-		echo " [${BRANCH}]"
-	else
-		echo ""
-	fi
-}
-
-# get current status of git repo
-function parse_git_dirty {
-	status=`git status 2>&1 | tee`
-	dirty=`echo -n "${status}" 2> /dev/null | grep "modified:" &> /dev/null; echo "$?"`
-	untracked=`echo -n "${status}" 2> /dev/null | grep "Untracked files" &> /dev/null; echo "$?"`
-	ahead=`echo -n "${status}" 2> /dev/null | grep "Your branch is ahead of" &> /dev/null; echo "$?"`
-	newfile=`echo -n "${status}" 2> /dev/null | grep "new file:" &> /dev/null; echo "$?"`
-	renamed=`echo -n "${status}" 2> /dev/null | grep "renamed:" &> /dev/null; echo "$?"`
-	deleted=`echo -n "${status}" 2> /dev/null | grep "deleted:" &> /dev/null; echo "$?"`
-	bits=''
-	if [ "${renamed}" == "0" ]; then
-		bits=">${bits}"
-	fi
-	if [ "${ahead}" == "0" ]; then
-		bits="*${bits}"
-	fi
-	if [ "${newfile}" == "0" ]; then
-		bits="+${bits}"
-	fi
-	if [ "${untracked}" == "0" ]; then
-		bits="?${bits}"
-	fi
-	if [ "${deleted}" == "0" ]; then
-		bits="x${bits}"
-	fi
-	if [ "${dirty}" == "0" ]; then
-		bits="!${bits}"
-	fi
-	if [ ! "${bits}" == "" ]; then
-		echo " ${bits}"
-	else
-		echo ""
-	fi
-}
-
-#export PS1="\[\e[34m\]\w\[\e[m\]\[\e[32m\]\`parse_git_branch\`\[\e[m\]\[\e[35m\]\`parse_git_dirty\`\[\e[m\\n> "
-export PS1="\[\e[34m\]\w\[\e[m\]\[\e[38;5;114m\]\`parse_git_branch\`\[\e[m\]\[\e[35m\]\`parse_git_dirty\`\[\e[m\\n> "
-
-# good stuff from https://natelandau.com/my-mac-osx-bash_profile/
+# Hand picked good stuff from https://natelandau.com/my-mac-osx-bash_profile/
 
 #   -----------------------------
 #   2. MAKE TERMINAL BETTER
@@ -69,15 +22,17 @@ alias mv='mv -iv'                           # Preferred 'mv' implementation
 alias mkdir='mkdir -pv'                     # Preferred 'mkdir' implementation
 # alias ll='ls -l'
 # alias la='ls -FGlAhp'                       # Preferred 'ls' implementation
+# @Nipsuli: use exa for ls stuff
 alias ll='exa -l'
 alias la='exa -la'
 lt() { exa -T -L "$1" -l; }
-# exa colours to match vim and tmux
+# exa colours to match vim and tmux Colors by @Nipsuli
 # export LS_COLORS="ex=38;5;114"
 # export EXA_COLORS="ux=38;5;114:ue=38;5;114:gx=38;5;114:tx=38;5;114:sn=38;5;114:sb=38;5;114:df=38;5;114:ds=38;5;114:ga=38;5;114"
 export LS_COLORS="ex=38;5;150"
 export EXA_COLORS="ux=38;5;150:ue=38;5;150:gx=38;5;150:tx=38;5;150:sn=38;5;150:sb=38;5;150:df=38;5;150:ds=38;5;150:ga=150"
 # setting definitions in https://the.exa.website/docs/colour-themes
+
 
 alias less='less -FSRXc'                    # Preferred 'less' implementation
 cd() { builtin cd "$@"; ll; }               # Always list directory contents upon 'cd'
@@ -92,7 +47,7 @@ alias edit='subl'                           # edit:         Opens any file in su
 alias f='open -a Finder ./'                 # f:            Opens current directory in MacOS Finder
 alias ~="cd ~"                              # ~:            Go Home
 alias c='clear'                             # c:            Clear terminal display
-alias which='type -all'                     # which:        Find executables
+# alias which='type -all'                     # which:        Find executables
 alias path='echo -e ${PATH//:/\\n}'         # path:         Echo all executable Paths
 alias show_options='shopt'                  # Show_options: display bash options settings
 alias fix_stty='stty sane'                  # fix_stty:     Restore terminal settings when screwed up
@@ -101,25 +56,6 @@ mcd () { mkdir -p "$1" && cd "$1"; }        # mcd:          Makes new Dir and ju
 trash () { command mv "$@" ~/.Trash ; }     # trash:        Moves a file to the MacOS trash
 ql () { qlmanage -p "$*" >& /dev/null; }    # ql:           Opens any file in MacOS Quicklook Preview
 alias DT='tee ~/Desktop/terminalOut.txt'
-
-#   cdf:  'Cd's to frontmost window of MacOS Finder
-#   ------------------------------------------------------
-# cdf () {
-#     currFolderPath=$( /usr/bin/osascript <<EOT
-#         tell application "Finder"
-#             try
-#         set currFolder to (folder of the front window as alias)
-#             on error
-#         set currFolder to (path to desktop folder as alias)
-#             end try
-#             POSIX path of currFolder
-#         end tell
-# EOT
-# 	)
-# 	echo "cd to \"$currFolderPath\""
-# 	cd "$currFolderPath"
-# }
-#
 
 #   ---------------------------
 #   4. SEARCHING
@@ -133,7 +69,6 @@ ffe () { /usr/bin/find . -name '*'"$@" ; }  # ffe:      Find file whose name end
 #   spotlight: Search for a file using MacOS Spotlight's metadata
 #   -----------------------------------------------------------
 spotlight () { mdfind "kMDItemDisplayName == '$@'wc"; }
-
 
 #   ---------------------------
 #   5. PROCESS MANAGEMENT
@@ -171,7 +106,6 @@ alias ttop="top -R -F -s 10 -o rsize"
 #   ------------------------------------------------------------
 my_ps() { ps $@ -u $USER -o pid,%cpu,%mem,start,time,bsdtime,command ; }
 
-
 #   ---------------------------
 #   6. NETWORKING
 #   ---------------------------
@@ -201,75 +135,3 @@ ii() {
     #echo -e "\n${RED}DNS Configuration:$NC " ; scutil --dns
     echo
 }
-
-
-
-# extras, need modifications depending on machine
-
-# for z
-. /usr/local/etc/profile.d/z.sh
-
-# The next line updates PATH for the Google Cloud SDK.
-# if [ -f '/Users/niko/local_docs/google-cloud-sdk/path.bash.inc' ]; then source '/Users/niko/local_docs/google-cloud-sdk/path.bash.inc'; fi
-
-# The next line enables shell command completion for gcloud.
-# if [ -f '/Users/niko/local_docs/google-cloud-sdk/completion.bash.inc' ]; then source '/Users/niko/local_docs/google-cloud-sdk/completion.bash.inc'; fi
-
-# added by Anaconda3 5.1.0 installer
-# export PATH="/anaconda3/bin:$PATH"
-# export PATH="$PATH:/anaconda3/bin"
-
-# Setting PATH for Python 3.7
-# The original version is saved in .bash_profile.pysave
-# PATH="/Library/Frameworks/Python.framework/Versions/3.8/bin:${PATH}"
-export PATH
-# added by Anaconda3 2018.12 installer
-# >>> conda init >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$(CONDA_REPORT_ERRORS=false '/anaconda3/bin/conda' shell.bash hook 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    \eval "$__conda_setup"
-else
-    if [ -f "/anaconda3/etc/profile.d/conda.sh" ]; then
-        . "/anaconda3/etc/profile.d/conda.sh"
-        CONDA_CHANGEPS1=false conda activate base
-    else
-        \export PATH="$PATH:/anaconda3/bin"
-    fi
-fi
-unset __conda_setup
-# <<< conda init <<<
-
-# aws cli
-export PATH=$PATH:/Users/niko/.local/bin
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-
-# tmuxinator https://github.com/tmuxinator/tmuxinator
-source ~/.bin/tmuxinator.bash
-
-[ -f /usr/local/etc/bash_completion ] && . /usr/local/etc/bash_completion
-export PATH="/usr/local/opt/terraform@0.11/bin:$PATH"
-
-[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
-
-export PATH="$HOME/.cargo/bin:$PATH"
-
-source ~/.cargo/env
-
-export PATH=$PATH:/Users/niko/.pgo/pgo
-export PGOUSER=/Users/niko/.pgo/pgo/pgouser
-export PGO_CA_CERT=/Users/niko/.pgo/pgo/client.crt
-export PGO_CLIENT_CERT=/Users/niko/.pgo/pgo/client.crt
-export PGO_CLIENT_KEY=/Users/niko/.pgo/pgo/client.key
-export PGO_APISERVER_URL="https://127.0.0.1:8443"
-
-export DENO_INSTALL="/Users/niko/.deno"
-export PATH="$DENO_INSTALL/bin:$PATH"
-export PATH=/Users/niko/.local/share/ponyup/bin:$PATH
-export PATH="/usr/local/opt/python@3.9/bin:$PATH"
-export PATH="/usr/local/Cellar/vim/8.2.2425/bin:$PATH"
-
-eval "$(direnv hook bash)"

@@ -1,0 +1,22 @@
+#!/bin/bash
+
+if ! command -v lpass &> /dev/null; then
+    echo "Need to have lpass installed. Do: brew install lastpass-cli"
+    exit 1
+fi
+
+if ! lpass status -q; then
+    if [ -z ${EMAIL+x} ]; then
+        echo "No EMAIL variable available, bailing"
+        exit 1
+    fi
+    lpass login $EMAIL
+fi
+
+lpass ls --long | fzf | sed -E "s/.*\[id:[[:space:]]([0-9]+)\].*/\1/" | xargs -I {} lpass show --password {} | pbcopy
+
+read -n 1 -s -r -p "Press any key when done..."
+
+pbcopy </dev/null
+
+echo " Clipboard cleared ʕっ•ᴥ•ʔっ"

@@ -10,7 +10,7 @@ env:
   # each instance of Alacritty. If it is not present, alacritty will
   # check the local terminfo database and use `alacritty` if it is
   # available, otherwise `xterm-256color` is used.
-  #TERM: alacritty
+  # TERM: alacritty
   TERM: xterm-256color
 
 window:
@@ -92,6 +92,8 @@ window:
 
 # Font configuration
 font:
+  # family: Hack
+  # size: 14
   # Normal (roman) font face
   normal:
     # Font family
@@ -101,14 +103,13 @@ font:
     #   - (Linux/BSD) monospace
     #   - (Windows) Consolas
     # family: monospace
-    # family: Menlo
-    family: Hack
+    family: Hack Nerd Font Mono
 
     # The `style` can be specified to pick a specific face.
-    #style: Regular
+    style: Regular
 
   # Bold font face
-  #bold:
+  # bold:
     # Font family
     #
     # If the bold family is not specified, it will fall back to the
@@ -119,7 +120,7 @@ font:
     #style: Bold
 
   # Italic font face
-  #italic:
+  # italic:
     # Font family
     #
     # If the italic family is not specified, it will fall back to the
@@ -130,7 +131,7 @@ font:
     #style: Italic
 
   # Bold italic font face
-  #bold_italic:
+  # bold_italic:
     # Font family
     #
     # If the bold italic family is not specified, it will fall back to the
@@ -141,7 +142,7 @@ font:
     #style: Bold Italic
 
   # Point size
-  #size: 11.0
+  # size: 14
 
   # Offset is the extra space around each character. `offset.y` can be thought of
   # as modifying the line spacing, and `offset.x` as modifying the letter spacing.
