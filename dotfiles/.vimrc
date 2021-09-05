@@ -1,73 +1,4 @@
-set omnifunc=syntaxcomplete#Complete
-"set omnifunc=LanguageClient#complete
-"set completefunc=LanguageClient#complete
-
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" => Colors and Fonts
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" set term=xterm-256color
-
-" Enable syntax highlighting
-syntax enable
-
-" Enable 256 colors palette in Gnome Terminal
-if $COLORTERM == 'gnome-terminal'
-    set t_Co=256
-endif
-
-set t_Co=256
-" Set extra options when running in GUI mode
-if has("gui_running")
-    set guioptions-=T
-    set guioptions-=e
-    set t_Co=256
-    set guitablabel=%M\ %t
-endif
-
-
-if (has("termguicolors"))
-    set t_8f=[38;2;%lu;%lu;%lum
-    set t_8b=[48;2;%lu;%lu;%lum
-    set termguicolors
-endif
-
-set background=dark
-
-try
-    colorscheme one
-catch
-endtry
-
-let g:airline_theme='one'
-let g:airline#extensions#tabline#enabled = 1
-
-" Manually setting omnifunc pop up colors
-" this was needed when colors didn't work
-" highlight Pmenu ctermbg=gray guibg=gray
-" highlight PmenuSel ctermfg=black guifg=black
-
-set completeopt=longest,menuone
-
-" Set utf8 as standard encoding and en_US as the standard language
-set encoding=utf8
-
-" Use Unix as the standard file type
-set ffs=unix,dos,mac
-
-" call one#highlight('Normal', 'abb2bf', '404142', '')
-
-"""""""""""""""
-" => filetypes
-"""""""""""""""
-" et  = expandtab (spaces instead of tabs)
-" ts  = tabstop (the number of spaces that a tab equates to)
-" sw  = shiftwidth (the number of spaces to use when indenting -- or de-indenting -- a line)
-" sts = softtabstop (the number of spaces to use when expanding tabs)
-autocmd FileType javascript setlocal et ts=2 sts=2 sw=2
-autocmd FileType typescript setlocal et ts=2 sts=2 sw=2
-autocmd FileType jsonnet setlocal et ts=2 sts=2 sw=2
-autocmd FileType yaml setlocal et ts=2 sts=2 sw=2
-autocmd FileType sql setlocal et ts=2 sts=2 sw=2
+" Original from ↓ modified from there
 " Maintainer:
 "       Amir Salihefendic — @amix3k
 "
@@ -112,6 +43,7 @@ set autoread
 " With a map leader it's possible to do extra key combinations
 " like <leader>w saves the current file
 let mapleader = ","
+" let mapleader = " "
 
 " Fast saving
 nmap <leader>w :w!<cr>
@@ -191,7 +123,6 @@ if has("gui_macvim")
     autocmd GUIEnter * set vb t_vb=
 endif
 
-
 " Add a bit extra margin to the left
 set foldcolumn=1
 
@@ -225,8 +156,8 @@ set tabstop=4
 set lbr
 set tw=500
 
-set ai "Auto indent
-set si "Smart indent
+set ai   "Auto indent
+set si   "Smart indent
 set wrap "Wrap lines
 
 
@@ -243,8 +174,8 @@ vnoremap <silent> # :<C-u>call VisualSelection('', '')<CR>?<C-R>=@/<CR><CR>
 " => Moving around, tabs, windows and buffers
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Map <Space> to / (search) and Ctrl-<Space> to ? (backwards search)
-map <space> /
-map <A-space> ?
+" map <space> /
+" map <A-space> ?
 
 " Disable highlight when <leader><cr> is pressed
 map <silent> <leader><cr> :noh<cr>
@@ -457,8 +388,8 @@ Plug 'ionide/Ionide-vim', {
     \ }
 
 Plug 'Shougo/deoplete.nvim'
-Plug 'roxma/nvim-yarp'
-Plug 'roxma/vim-hug-neovim-rpc'
+" Plug 'roxma/nvim-yarp'
+" Plug 'roxma/vim-hug-neovim-rpc'
 
 " Plug 'tpope/vim-surround'
 " Plug 'tpope/vim-commentary'
@@ -467,8 +398,12 @@ call plug#end()
 
 " Let's add some auto complete settings
 let g:deoplete#enable_at_startup = 1
-call deoplete#custom#option('auto_complete', v:false)
+try
+  call deoplete#custom#option('auto_complete', v:false)
+catch
+endtry
 
+" SUPER MESSY SHIT, CLEAN THIS UP
 " tab completion
 inoremap <silent><expr> <TAB>
     \ pumvisible() ? "\<C-n>" :
