@@ -1,4 +1,4 @@
-" Original from ↓ modified from there
+" Original from ↓ used as starting point, and modified and added personal preferences
 " Maintainer:
 "       Amir Salihefendic — @amix3k
 "
@@ -363,19 +363,19 @@ Plug 'junegunn/fzf', { 'do': './install --bin' }
 Plug 'junegunn/fzf.vim'
 Plug 'tpope/vim-fugitive'
 
+" languages
 Plug 'google/vim-jsonnet'
-
 Plug 'pangloss/vim-javascript'
 Plug 'leafgarland/typescript-vim'
 Plug 'peitalin/vim-jsx-typescript'
 Plug 'styled-components/vim-styled-components', { 'branch': 'main' }
 Plug 'jparise/vim-graphql'
-
 Plug 'rust-lang/rust.vim'
-"Plug 'racer-rust/vim-racer'
-
 Plug 'jakwings/vim-pony'
 Plug 'ziglang/zig.vim'
+" end languages
+
+"Plug 'racer-rust/vim-racer'
 
 Plug 'autozimu/LanguageClient-neovim', {
     \ 'branch': 'next',
@@ -387,35 +387,37 @@ Plug 'ionide/Ionide-vim', {
     \ 'do':  'make fsautocomplete',
     \ }
 
-Plug 'Shougo/deoplete.nvim'
+" deoplete
+" Plug 'Shougo/deoplete.nvim'
 " Plug 'roxma/nvim-yarp'
 " Plug 'roxma/vim-hug-neovim-rpc'
+" end deoplete
 
-" Plug 'tpope/vim-surround'
-" Plug 'tpope/vim-commentary'
+Plug 'tpope/vim-surround'
+Plug 'tpope/vim-commentary'
 
 call plug#end()
 
 " Let's add some auto complete settings
-let g:deoplete#enable_at_startup = 1
-try
-  call deoplete#custom#option('auto_complete', v:false)
-catch
-endtry
+" let g:deoplete#enable_yarp = 1
+" let g:deoplete#enable_at_startup = 1
+" try
+"   call deoplete#custom#option('auto_complete', v:false)
+" catch
+" endtry
 
 " SUPER MESSY SHIT, CLEAN THIS UP
 " tab completion
-inoremap <silent><expr> <TAB>
-    \ pumvisible() ? "\<C-n>" :
-    \ <SID>check_back_space() ? "\<TAB>" :
-    \ deoplete#manual_complete()
-function! s:check_back_space() abort "{{{
-    let col = col('.') - 1
-    return !col || getline('.')[col - 1]  =~ '\s'
-endfunction"}}}
+" inoremap <silent><expr> <TAB>
+"     \ pumvisible() ? "\<C-n>" :
+"     \ <SID>check_back_space() ? "\<TAB>" :
+"     \ deoplete#manual_complete()
+" function! s:check_back_space() abort "{{{
+"     let col = col('.') - 1
+"     return !col || getline('.')[col - 1]  =~ '\s'
+" endfunction"}}}
 
 " recommended by vim-racer
-set hidden
 "let g:racer_cmd = /Users/niko/.cargo/bin/racer"
 "let g:racer_insert_paren = 1
 "let g:racer_experimental_completer = 1
@@ -436,17 +438,10 @@ let g:LanguageClient_serverCommands = {
     \ }
 
 " More autocomplete configs
-" <C-Space>
-" inoremap <Nul> <C-x><C-o>
 inoremap <C-o> <C-x><C-o>
 "inoremap <silent> <C-Space> <C-r>=deoplete#manual_complete()<cr>
 
-
 set omnifunc=syntaxcomplete#Complete
-"set omnifunc=LanguageClient#complete
-"set completefunc=LanguageClient#complete
-
-
 
 """"""
 " Fzf
@@ -460,8 +455,8 @@ command! -bang -nargs=* Rg
   \   'rg --column --line-number --no-heading --color=always --smart-case -- '.shellescape(<q-args>), 1,
   \   fzf#vim#with_preview(), <bang>0)
 
-map <leader>z :Files!<cr>
-map <leader>Z :Rg!<cr>
+map <C-O> :Files!<cr>
+map <C-P> :Rg!<cr>
 
 let $FZF_DEFAULT_COMMAND = 'ag -g ""'
 

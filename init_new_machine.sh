@@ -59,6 +59,8 @@ setup_terminal() {
     $(brew --prefix)/opt/fzf/install
     # rg for searching is must
     brew install ripgrep
+    # as is ag
+    brew install the_silver_searcher
     # better looking cat
     brew install bat
     # check for more possible goodies: https://dev.to/_darrenburns/10-tools-to-power-up-your-command-line-4id4

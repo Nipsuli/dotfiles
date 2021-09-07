@@ -18,6 +18,7 @@ install_from_brew () {
     brew install --cask docker              # one should probably use docker for all dev stuff
     brew install --cask sublime-text        # sometimes sublime is what one needs
     brew install --cask visual-studio-code  # and other times it's VSCode
+    brew install deno                       # 
 }
 
 install_personal_helpers() {
@@ -42,6 +43,7 @@ install_from_app_store() {
     # I've purchased this from online, so need to download manually to keep licence
     # mas purchase 975937182  # Fantastical
     mas install 1451685025  # Wireguard
+    mas purchase 414568915  # Key Codes
 }
 
 main() {

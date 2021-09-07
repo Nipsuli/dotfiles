@@ -506,7 +506,13 @@ font:
 #
 # If the same trigger is assigned to multiple actions, all of them are executed
 # at once.
-#key_bindings:
+key_bindings:
+  # cmd + shift + p to send ctrl + p
+  # cmd + p/o to send ctrl + o
+  # use e.g. Key Cods to get the keys on Mac (mas install 414568915) 
+  - { key: P, mods: Command|Shift, chars: "\x10" }
+  - { key: O, mods: Command, chars: "\x0f" }
+  - { key: P, mods: Command, chars: "\x0f" }
   # (Windows, Linux, and BSD only)
   #- { key: V,        mods: Control|Shift, action: Paste            }
   #- { key: C,        mods: Control|Shift, action: Copy             }
@@ -544,8 +550,8 @@ font:
   #- { key: Home,      mods: Shift,   action: ScrollToTop,    mode: ~Alt       }
   #- { key: End,       mods: Shift,   action: ScrollToBottom, mode: ~Alt       }
 
-#debug:
-  # Display the time it takes to redraw each frame.
+# debug:
+#   # Display the time it takes to redraw each frame.
   #render_timer: false
 
   # Keep the log file after quitting Alacritty.
@@ -561,6 +567,7 @@ font:
   #   - Debug
   #   - Trace
   #log_level: Warn
+  # log_level: Debug 
 
   # Print all received window events.
-  #print_events: false
+  # print_events: false
