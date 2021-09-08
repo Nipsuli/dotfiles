@@ -8,14 +8,10 @@ link_dotfiles() {
     ln -sf $PWD/dotfiles/.tmux.conf ~/.tmux.conf
     ln -sf $PWD/dotfiles/.vimrc ~/.vimrc
 
-    # bash or zsh both works
-    # this repo has shared bash profile that's sourced in the real
-    # ~/.bash_profile or ~/.zshrc as lot of installations pollute
-    # those files and don't want to link that to this repo
-    touch ~/.bash_profile
-    touch ~/.zshrc
-    append_to_file ~/.bash_profile "source ~/.bash_profile_shared"
-    append_to_file ~/.zshrc "source ~/.bash_profile_shared"
+    # On purpose keeping the the bash_profile_shared as clean and sourcing
+    # it on the main shell config file, as many installations can push
+    # all kinds of junk there, which I do not want polluting this repo
+    append_to_shell_files "source ~/.bash_profile_shared"
 }
 
 main() {
