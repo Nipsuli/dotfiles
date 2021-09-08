@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-
 source ./helpers.sh
 
 check_email_var() {
@@ -27,67 +26,6 @@ setup_git() {
     check_email_var
     git config --global user.email $EMAIL
     ssh-keygen -t rsa -b 4096 -C $EMAIL    
-}
-
-setup_terminal() {
-    # installing basic console tools that I prefer
-    # better nicer looking ls
-    brew install exa              
-    # I like this one https://starship.rs for the basic shell look and feel
-    brew install starship
-    # it requires https://www.nerdfonts.com
-    # these are my favourites
-    brew tap homebrew/cask-fonts
-    brew install --cask font-hack-nerd-font 
-    brew install --cask font-fira-code
-    # On VSCode set terminal font family to Hack Nerd Font Mono
-
-    # I think this is a must https://direnv.net
-    # Use .envrc in projects to manage env
-    brew install direnv
-
-    # install starship and direnv hooks for both bash and zsh
-    touch ~/.bash_profile
-    touch ~/.zshrc
-    append_to_file ~/.bash_profile 'eval "$(starship init bash)"'
-    append_to_file ~/.bash_profile 'eval "$(direnv hook bash)"'
-    append_to_file ~/.zshrc 'eval "$(starship init zsh)"'
-    append_to_file ~/.zshrc 'eval "$(direnv hook zsh)"'
-
-    # fzf is a must! https://github.com/junegunn/fzf
-    brew install fzf
-    $(brew --prefix)/opt/fzf/install
-    # rg for searching is must
-    brew install ripgrep
-    # as is ag
-    brew install the_silver_searcher
-    # better looking cat
-    brew install bat
-    # check for more possible goodies: https://dev.to/_darrenburns/10-tools-to-power-up-your-command-line-4id4
-}
-
-setup_terminal_tools() {
-    # I like alacritty as terminal
-    brew install alacritty
-    # and tmux as multiplexer
-    brew install tmux
-    # this next was needed at least before for tmux copy, not 100% any more 
-    brew install reattach-to-user-namespace
-    # and vim as editor
-    brew install vim
-    # I use https://github.com/ycm-core/YouCompleteMe
-    # as vim autocomplete, install all dependencies
-    brew install cmake python mono go nodejs
-    # brew install gcc
-    # brew install llvm
-    # brew install tbb
-    # plugin managers:
-    # for tmux
-    git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
-    # and vim
-    curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
-        https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-
 }
 
 setup_keybindings() {
@@ -117,26 +55,21 @@ setup_finder() {
     defaults write com.apple.finder ShowStatusBar -bool true
 }
 
-setup_helper_scripts() {
-    # link helper scripts
-    mkdir -p ~/bin
-    ln -sf $PWD/scripts/mtwrfsu ~/bin/mtwrfsu
-    ln -sf $PWD/scripts/git-clean ~/bin/git-clean
+setup_menubar() {
+    # I don't like apples clock on the menu bar on BigSur
+    # and one cannot remove it, so best what I can do is
+    # to make int small analog clock instead
+    defaults write com.apple.menuextra.clock IsAnalog -bool true
 }
 
 setup_basic_env() {
     check_email_var
-    append_to_file ~/.bash_profile "export EMAIL=${EMAIL}"
-    append_to_file ~/.zshrc "export EMAIL=${EMAIL}"
+    append_to_shell_files "export EMAIL=${EMAIL}"
 }
 
 main() {
-    # EXECUTE ALL!
     install_package_managers
     setup_git
-    setup_terminal
-    setup_terminal_tools
-    setup_helper_scripts
     setup_keybindings
     setup_finder
     setup_screenshots
