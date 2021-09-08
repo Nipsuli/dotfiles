@@ -3,13 +3,33 @@ export EDITOR='vim'
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 # always prefer /usr/local/bin over other locations
-export PATH=/usr/local/bin:$PATH
-# but ~/bin should be the last place to look
+# export PATH=/usr/local/bin:$PATH
+# Try to also look from ~/bin
 export PATH=$PATH:$HOME/bin/
 
 # Let's do vim bindings in bash as well
 # shopt -s -o vi # on older mac bash
 set -o vi
+
+# tmux helper functions, mainly from https://github.com/kshenoy/dotfiles/blob/master/tmux/tmuxw.bash
+tmux::exe() {
+    LANG=en_US.UTF-8 TMUX_DEFAULT_OPTS="$TMUX_DEFAULT_OPTS ${TMUX_DEFAULT_SOCKET:+-L $TMUX_DEFAULT_SOCKET}" command tmux "$@"
+}
+
+tmux::send_keys_other_panes() {
+    local _pane_current=$(tmux display-message -p '#P')
+    for _pane in $(tmux list-panes -F '#P'); do
+        if (( "$_pane" != "$_pane_current" )); then
+            tmux::exe send-keys -t ${_pane} "$@"
+        fi
+    done
+}
+
+tmux::sync_pane_dirs() {
+    tmux setenv TMUX_PWD "$PWD"
+    tmux::send_keys_other_panes 'cd -- "$(tmux showenv TMUX_PWD | cut -d= -f2)"' Enter
+}
+# END tmux helper functions
 
 # Hand picked good stuff from https://natelandau.com/my-mac-osx-bash_profile/
 

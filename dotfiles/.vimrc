@@ -375,78 +375,43 @@ Plug 'jakwings/vim-pony'
 Plug 'ziglang/zig.vim'
 " end languages
 
-"Plug 'racer-rust/vim-racer'
+Plug 'ycm-core/YouCompleteMe'
+" Remember to
+" cd ~/.vim/plugged/YouCompleteMe/
+" python3 install.py --all
 
-Plug 'autozimu/LanguageClient-neovim', {
-    \ 'branch': 'next',
-    \ 'tag': '0.1.155',
-    \ 'do': 'bash install.sh',
-    \ }
+" Plug 'autozimu/LanguageClient-neovim', {
+"     \ 'branch': 'next',
+"     \ 'tag': '0.1.155',
+"     \ 'do': 'bash install.sh',
+"     \ }
 
-Plug 'ionide/Ionide-vim', {
-    \ 'do':  'make fsautocomplete',
-    \ }
-
-" deoplete
-" Plug 'Shougo/deoplete.nvim'
-" Plug 'roxma/nvim-yarp'
-" Plug 'roxma/vim-hug-neovim-rpc'
-" end deoplete
+" Plug 'ionide/Ionide-vim', {
+"     \ 'do':  'make fsautocomplete',
+"     \ }
 
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-commentary'
 
 call plug#end()
 
-" Let's add some auto complete settings
-" let g:deoplete#enable_yarp = 1
-" let g:deoplete#enable_at_startup = 1
-" try
-"   call deoplete#custom#option('auto_complete', v:false)
-" catch
-" endtry
-
-" SUPER MESSY SHIT, CLEAN THIS UP
-" tab completion
-" inoremap <silent><expr> <TAB>
-"     \ pumvisible() ? "\<C-n>" :
-"     \ <SID>check_back_space() ? "\<TAB>" :
-"     \ deoplete#manual_complete()
-" function! s:check_back_space() abort "{{{
-"     let col = col('.') - 1
-"     return !col || getline('.')[col - 1]  =~ '\s'
-" endfunction"}}}
-
-" recommended by vim-racer
-"let g:racer_cmd = /Users/niko/.cargo/bin/racer"
-"let g:racer_insert_paren = 1
-"let g:racer_experimental_completer = 1
-"augroup Racer
-"    autocmd!
-"    autocmd FileType rust nmap <buffer> gd         <Plug>(rust-def)
-"    autocmd FileType rust nmap <buffer> gs         <Plug>(rust-def-split)
-"    autocmd FileType rust nmap <buffer> gx         <Plug>(rust-def-vertical)
-"    autocmd FileType rust nmap <buffer> gnt        <Plug>(rust-def-tab)
-"    autocmd FileType rust nmap <buffer> <leader>gd <Plug>(rust-doc)
-"    autocmd FileType rust nmap <buffer> <leader>gD <Plug>(rust-doc-tab)
-"augroup END
+""""""""""""""""
+" Autocomplete "
+""""""""""""""""
+" set omnifunc=syntaxcomplete#Complete
 
 " Configs for LanguageClient
-let g:LanguageClient_serverCommands = {
-    \ 'rust': ['rustup', 'run', 'stable', 'rls'],
-    \ 'fsharp': ['dotnet', '/Users/niko/.vim/plugged/Ionide-vim/fsac/fsautocomplete.dll', '--background-service-enabled'],
-    \ }
+" let g:LanguageClient_serverCommands = {
+"     \ 'rust': ['rustup', 'run', 'stable', 'rls'],
+"     \ 'fsharp': ['dotnet', '/Users/niko/.vim/plugged/Ionide-vim/fsac/fsautocomplete.dll', '--background-service-enabled'],
+"     \ }
 
 " More autocomplete configs
-inoremap <C-o> <C-x><C-o>
-"inoremap <silent> <C-Space> <C-r>=deoplete#manual_complete()<cr>
-
-set omnifunc=syntaxcomplete#Complete
+" inoremap <C-i> <C-x><C-o>
 
 """"""
 " Fzf
 "
-
 command! -bang -nargs=? -complete=dir Files
     \ call fzf#vim#files(<q-args>, fzf#vim#with_preview(), <bang>0)
 
@@ -466,7 +431,6 @@ let $FZF_DEFAULT_COMMAND = 'ag -g ""'
 set splitbelow
 " set termsize=10x0
 cabbrev bterm bo term
-
 
 " share system clipboard
 set clipboard=unnamed
@@ -514,8 +478,6 @@ let g:airline#extensions#tabline#enabled = 1
 " this was needed when colors didn't work
 " highlight Pmenu ctermbg=gray guibg=gray
 " highlight PmenuSel ctermfg=black guifg=black
-
-set completeopt=longest,menuone
 
 " Set utf8 as standard encoding and en_US as the standard language
 set encoding=utf8

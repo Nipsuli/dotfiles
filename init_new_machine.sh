@@ -75,6 +75,12 @@ setup_terminal_tools() {
     brew install reattach-to-user-namespace
     # and vim as editor
     brew install vim
+    # I use https://github.com/ycm-core/YouCompleteMe
+    # as vim autocomplete, install all dependencies
+    brew install cmake python mono go nodejs
+    # brew install gcc
+    # brew install llvm
+    # brew install tbb
     # plugin managers:
     # for tmux
     git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
