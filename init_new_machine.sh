@@ -16,9 +16,10 @@ install_package_managers() {
     # might be needed, not sure
     # git -C /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core fetch --unshallow
     # git -C /usr/local/Homebrew/Library/Taps/homebrew/homebrew-cask fetch --unshallow
+    # /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     
     # Commandline tool for app store
-    brew install mas # this works on newer macs
+    brew install mas
     # brew install mas-cli/tap/mas # this is needed on older macs
 }
 
