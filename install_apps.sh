@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-
 source ./helpers.sh
 
 install_terminal_apps() {
