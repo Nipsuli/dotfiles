@@ -44,14 +44,17 @@ install_apps() {
     mas install 1451685025                  # Wireguard
     # utilities 
     brew install --cask spotify             # ¡La Musica!
-    brew install --cask rectangle           # window manager
-    brew install --cask istat-menus         # simple menubar system monitoring tool
+    brew install --cask rectangle           # window manager, could try https://emmetapp.com at some point
     # mas purchase 1319778037               # iStat Menus, i've used the brew version and manual licence
+    brew install --cask istat-menus         # simple menubar system monitoring tool
     mas purchase 414568915                  # Key Codes
+    brew install --cask pingplotter         # Don't you hate bad internet connection? Find where the bottleneck is with Ping Plotter!
     # productivity
-    mas purchase 406056744                  # Evernote
+    # mas purchase 406056744                  # Evernote
+    brew install --cask obsidian            # better than Evernote
     mas install 1274495053                  # MS To Do 
     # mas purchase 975937182                # Fantastical, I've purchased this from online, so need to download manually to keep licence
+    brew install --cask fantastical         # this is ok
     # messengres 
     mas install 1176895641                  # Spark email app
     mas install 803453959                   # Slack 

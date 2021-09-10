@@ -1,4 +1,6 @@
 append_to_file() {
+    # Appends text to file if it does not exists there yet
+    # --> safe to call multiple times with same args
     local file="$1"
     local line="$2"
     grep -qF -- "$line" "$file" || echo "$line" | sudo tee -a "$file"

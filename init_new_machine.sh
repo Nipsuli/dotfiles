@@ -50,13 +50,11 @@ setup_screenshots() {
     killall SystemUIServer    
 }
 
-setup_finder() {
+configure_settings() {
+    # Some sanity to finder, like showing also hidden files and full paths
     defaults write com.apple.finder AppleShowAllFiles YES
     defaults write com.apple.finder ShowPathbar -bool true
     defaults write com.apple.finder ShowStatusBar -bool true
-}
-
-setup_menubar() {
     # I don't like apples clock on the menu bar on BigSur
     # and one cannot remove it, so best what I can do is
     # to make int small analog clock instead
@@ -72,7 +70,7 @@ main() {
     install_package_managers
     setup_git
     setup_keybindings
-    setup_finder
+    configure_settings
     setup_screenshots
     setup_basic_env
     echo "remember to login to AppStore"
