@@ -40,6 +40,8 @@ EOF
 }
 
 configure_settings() {
+    # Never configure stuff from GUI, store all settings here
+    # How to find settings: https://pawelgrzybek.com/change-macos-user-preferences-via-command-line/
     # who the hell thought that Desktop would be good location for screenshots?
     mkdir ~/Desktop/screenshots
     defaults write com.apple.screencapture location ~/Desktop/screenshots
@@ -48,10 +50,19 @@ configure_settings() {
     defaults write com.apple.finder AppleShowAllFiles YES
     defaults write com.apple.finder ShowPathbar -bool true
     defaults write com.apple.finder ShowStatusBar -bool true
-    # I don't like apples clock on the menu bar on BigSur
-    # and one cannot remove it, so best what I can do is
-    # to make int small analog clock instead
+    # I don't like apples clock on the menu bar on BigSur and one cannot remove it,
+    # so best what I can do is to make int small analog clock instead
     defaults write com.apple.menuextra.clock IsAnalog -bool true
+    # Disable smart dashes as they’re annoying when typing code
+    defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
+    # Disable automatic periods with a double space
+    defaults write NSGlobalDomain NSAutomaticPeriodSubstitutionEnabled -bool false
+    # Disable smart quotes as they’re annoying when typing code
+    defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
+    # Set a shorter delay until key repeat:
+    defaults write NSGlobalDomain InitialKeyRepeat -int 15
+    # Set a blazingly fast keyboard repeat rate:
+    defaults write NSGlobalDomain KeyRepeat -int 2
 }
 
 setup_basic_env() {

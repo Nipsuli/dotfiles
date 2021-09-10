@@ -3,15 +3,17 @@ set -e
 source ./helpers.sh
 
 link_dotfiles() {
-    ln -sf $PWD/dotfiles/.alacritty.yml ~/.alacritty.yml
     ln -sf $PWD/dotfiles/.bash_profile_shared ~/.bash_profile_shared
-    ln -sf $PWD/dotfiles/.tmux.conf ~/.tmux.conf
-    ln -sf $PWD/dotfiles/.vimrc ~/.vimrc
-
     # On purpose keeping the the bash_profile_shared as clean and sourcing
     # it on the main shell config file, as many installations can push
     # all kinds of junk to the rc files
     append_to_shell_files "source ~/.bash_profile_shared"
+    ln -sf $PWD/dotfiles/.tmux.conf ~/.tmux.conf
+    ln -sf $PWD/dotfiles/.vimrc ~/.vimrc
+}
+
+link_other_config_files() {
+    ln -sf $PWD/dotfiles/.alacritty.yml ~/.alacritty.yml
 }
 
 install_vim_plugins() {
@@ -36,6 +38,7 @@ install_tmux_plugins() {
 
 main() {
     link_dotfiles
+    link_other_config_files
     install_vim_plugins
     install_tmux_plugins
 }
