@@ -2,35 +2,31 @@
 set -e
 source ./helpers.sh
 
-check_email_var() {
-    if [ -z ${EMAIL+x} ]; then
-        echo "No EMAIL variable available, bailing"
-        exit 1
-    fi
-}
-
 install_package_managers() {
     # install homebrew https://brew.sh
     xcode-select --install
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    # might be needed, not sure
+    # These might be needed, not sure
     # git -C /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core fetch --unshallow
     # git -C /usr/local/Homebrew/Library/Taps/homebrew/homebrew-cask fetch --unshallow
     # /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     
-    # Commandline tool for app store
-    brew install mas
-    # brew install mas-cli/tap/mas # this is needed on older macs
+    brew install mas                        # Commandline tool for App Store
+    # brew install mas-cli/tap/mas          # this is needed on older macs
 }
 
 setup_git() {
     check_email_var
     git config --global user.email $EMAIL
     ssh-keygen -t rsa -b 4096 -C $EMAIL    
+    brew install gh                         # In addition config GitHub cli
+    gh auth login                           # This will also upload ssh key to GitHub
 }
 
 setup_keybindings() {
-    # I use US layout but need to write Finnish often
+    # I use US layout but need to write Finnish often, and ¨ + a/o is awkward to type
+    # so map alt + a/o to ä and ö
+    # This will overwrite ø and å (If I remember correctly)
     mkdir -p ~/Library/KeyBindings/
     touch ~/Library/KeyBindings/DefaultKeyBinding.dict
     cat > ~/Library/KeyBindings/DefaultKeyBinding.dict << EOF
@@ -43,14 +39,11 @@ setup_keybindings() {
 EOF
 }
 
-setup_screenshots() {
-    # who the hell thought that Desktop would be good location for them?
+configure_settings() {
+    # who the hell thought that Desktop would be good location for screenshots?
     mkdir ~/Desktop/screenshots
     defaults write com.apple.screencapture location ~/Desktop/screenshots
     killall SystemUIServer    
-}
-
-configure_settings() {
     # Some sanity to finder, like showing also hidden files and full paths
     defaults write com.apple.finder AppleShowAllFiles YES
     defaults write com.apple.finder ShowPathbar -bool true
@@ -67,14 +60,13 @@ setup_basic_env() {
 }
 
 main() {
-    install_package_managers
-    setup_git
-    setup_keybindings
-    configure_settings
-    setup_screenshots
-    setup_basic_env
-    echo "remember to login to AppStore"
-    echo "!!! remember to add ssh key to github !!!"
+    # install_package_managers
+    # setup_git
+    # setup_keybindings
+    # configure_settings
+    # setup_basic_env
+    read -n 1 -s -r -p "Need to login to AppStore manually, press any key to continue"
+    open -a App\ Store
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

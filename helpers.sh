@@ -1,3 +1,10 @@
+check_email_var() {
+    if [ -z ${EMAIL+x} ]; then
+        echo "No EMAIL variable available, bailing"
+        exit 1
+    fi
+}
+
 append_to_file() {
     # Appends text to file if it does not exists there yet
     # --> safe to call multiple times with same args

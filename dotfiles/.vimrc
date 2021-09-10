@@ -1,4 +1,5 @@
-" Original from ↓ used as starting point, and modified and added personal preferences
+" Original from ↓ used that as a starting point, modified and added personal preferences
+
 " Maintainer:
 "       Amir Salihefendic — @amix3k
 "

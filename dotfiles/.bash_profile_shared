@@ -2,8 +2,6 @@
 export EDITOR='vim'
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
-# always prefer /usr/local/bin over other locations
-# export PATH=/usr/local/bin:$PATH
 # Try to also look from ~/bin
 export PATH=$PATH:$HOME/bin/
 
@@ -46,7 +44,7 @@ alias mkdir='mkdir -pv'                     # Preferred 'mkdir' implementation
 alias ll='exa -l'
 alias la='exa -la'
 lt() { exa -T -L "$1" -l; }
-# exa colours to match vim and tmux Colors by @Nipsuli
+# exa colours to match @Nipsuli vim and tmux Colors
 # export LS_COLORS="ex=38;5;114"
 # export EXA_COLORS="ux=38;5;114:ue=38;5;114:gx=38;5;114:tx=38;5;114:sn=38;5;114:sb=38;5;114:df=38;5;114:ds=38;5;114:ga=38;5;114"
 export LS_COLORS="ex=38;5;150"
