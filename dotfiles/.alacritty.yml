@@ -92,8 +92,7 @@ window:
 
 # Font configuration
 font:
-  # family: Hack
-  # size: 14
+  size: 14
   # Normal (roman) font face
   normal:
     # Font family

@@ -42,6 +42,11 @@ EOF
 configure_settings() {
     # Never configure stuff from GUI, store all settings here
     # How to find settings: https://pawelgrzybek.com/change-macos-user-preferences-via-command-line/
+    # Simplest way to find correct setting:
+    # 1. defaults read > before
+    # 2. togle the setting in UI
+    # 3. defaults read > before
+    # 4. diff files
     # who the hell thought that Desktop would be good location for screenshots?
     mkdir ~/Desktop/screenshots
     defaults write com.apple.screencapture location ~/Desktop/screenshots

@@ -10,6 +10,7 @@ install_terminal_apps() {
     brew install ripgrep                        # as is rg
     brew install the_silver_searcher            # and ag for searching 
     brew install bat                            # just better looking cat
+    brew install tty-clock
     # check for more possible goodies: https://dev.to/_darrenburns/10-tools-to-power-up-your-command-line-4id4
 
     # install terminal tools that I prefer
@@ -63,6 +64,7 @@ install_apps() {
     brew install --cask docker              # one should probably use docker for all dev stuff and run nothing on local machine
     brew install --cask sublime-text        # sometimes sublime is what one needs
     brew install --cask visual-studio-code  # and other times it's VSCode
+    append_to_shell_files 'export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"'
     brew install deno                       # my current favourite scripting language/environment
     brew install poetry                     # best way to manage python projects
     brew install pyenv                      # Manging python versions without this is PITA
@@ -74,6 +76,10 @@ install_apps() {
     brew install direnv                     # Makes it possibile to scope environment variables to dirs, check more from: https://direnv.net
     append_to_file ~/.zshrc 'eval "$(direnv hook zsh)"'
     append_to_file ~/.bash_profile 'eval "$(direnv hook bash)"'
+}
+
+install_code_extensions() {
+    
 }
 
 install_helper_scripts() {
