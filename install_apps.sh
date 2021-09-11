@@ -35,6 +35,7 @@ install_apps() {
     brew install lastpass-cli               # cli version is nice as well, Note also https://github.com/lastpass/lastpass-cli/issues/604
     brew install --cask cloudflare-warp     # VPN that's not VPN
     mas install 1451685025                  # Wireguard
+    brew install --cask gpg-suite           # 
     # utilities 
     brew install --cask spotify             # ¡La Musica!
     brew install --cask rectangle           # window manager, NOTE: could try https://emmetapp.com at some point
@@ -79,7 +80,8 @@ install_apps() {
 }
 
 install_code_extensions() {
-    
+   code --install-extension iocave.customize-ui     # to be able to get rid of title bar
+   code --install-extension VSCodeVim.Vim           # well, who doesn't want vim?
 }
 
 install_helper_scripts() {
