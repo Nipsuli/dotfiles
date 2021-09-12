@@ -509,6 +509,10 @@ key_bindings:
   # cmd + shift + p to send ctrl + p
   # cmd + p/o to send ctrl + o
   # use e.g. Key Cods to get the keys on Mac (mas install 414568915) 
+  # This is needed as in my setup I have some issues on sending CMD to vim so
+  # mapping keybinding to ctrl to have CMD + P/O as open and CMD + SHIFT + P
+  # to send search
+  # need to investigate this
   - { key: P, mods: Command|Shift, chars: "\x10" }
   - { key: O, mods: Command, chars: "\x0f" }
   - { key: P, mods: Command, chars: "\x0f" }

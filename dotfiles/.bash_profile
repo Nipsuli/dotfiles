@@ -9,16 +9,17 @@ export PATH=$PATH:$HOME/bin/
 # shopt -s -o vi # on older mac bash
 set -o vi
 
-# tmux helper functions, mainly from https://github.com/kshenoy/dotfiles/blob/master/tmux/tmuxw.bash
+# BEGIN tmux helper functions
+# partially from https://github.com/kshenoy/dotfiles/blob/master/tmux/tmuxw.bash
 tmux::exe() {
     LANG=en_US.UTF-8 TMUX_DEFAULT_OPTS="$TMUX_DEFAULT_OPTS ${TMUX_DEFAULT_SOCKET:+-L $TMUX_DEFAULT_SOCKET}" command tmux "$@"
 }
 
 tmux::send_keys_other_panes() {
-    local _pane_current=$(tmux display-message -p '#P')
-    for _pane in $(tmux list-panes -F '#P'); do
-        if (( "$_pane" != "$_pane_current" )); then
-            tmux::exe send-keys -t ${_pane} "$@"
+    local pane_current=$(tmux display-message -p '#P')
+    for pane in $(tmux list-panes -F '#P'); do
+        if (( $pane != $pane_current )); then
+            tmux::exe send-keys -t ${pane} "$@"
         fi
     done
 }
@@ -29,7 +30,7 @@ tmux::sync_pane_dirs() {
 }
 # END tmux helper functions
 
-# Hand picked good stuff from https://natelandau.com/my-mac-osx-bash_profile/
+# Picked good stuff from https://natelandau.com/my-mac-osx-bash_profile/
 
 #   -----------------------------
 #   2. MAKE TERMINAL BETTER
@@ -44,7 +45,7 @@ alias mkdir='mkdir -pv'                     # Preferred 'mkdir' implementation
 alias ll='exa -l'
 alias la='exa -la'
 lt() { exa -T -L "$1" -l; }
-# exa colours to match @Nipsuli vim and tmux Colors
+# exa colours to match @Nipsuli vim and tmux onedark
 # export LS_COLORS="ex=38;5;114"
 # export EXA_COLORS="ux=38;5;114:ue=38;5;114:gx=38;5;114:tx=38;5;114:sn=38;5;114:sb=38;5;114:df=38;5;114:ds=38;5;114:ga=38;5;114"
 export LS_COLORS="ex=38;5;150"

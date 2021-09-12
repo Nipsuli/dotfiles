@@ -354,32 +354,19 @@ function! VisualSelection(direction, extra_filter) range
 endfunction
 
 " Plugin stuff
-" remober to run :PlugInstall after editing
+" remeber to run :PlugInstall after editing
 call plug#begin('~/.vim/plugged')
-
-Plug 'rakr/vim-one'
+" Add some color to life
+Plug 'Nipsuli/onedark.vim', { 'branch': 'add-airline-terminal-colors' } " See https://github.com/joshdick/onedark.vim/pull/287
 Plug 'vim-airline/vim-airline'
 
+" Make life easier
 Plug 'junegunn/fzf', { 'do': './install --bin' }
 Plug 'junegunn/fzf.vim'
 Plug 'tpope/vim-fugitive'
-
-" languages
-Plug 'google/vim-jsonnet'
-Plug 'pangloss/vim-javascript'
-Plug 'leafgarland/typescript-vim'
-Plug 'peitalin/vim-jsx-typescript'
-Plug 'styled-components/vim-styled-components', { 'branch': 'main' }
-Plug 'jparise/vim-graphql'
-Plug 'rust-lang/rust.vim'
-Plug 'jakwings/vim-pony'
-Plug 'ziglang/zig.vim'
-" end languages
-
-Plug 'ycm-core/YouCompleteMe'
-" Remember to
-" cd ~/.vim/plugged/YouCompleteMe/
-" python3 install.py --all
+Plug 'tpope/vim-surround'
+Plug 'tpope/vim-commentary'
+Plug 'ycm-core/YouCompleteMe' " Remember to cd ~/.vim/plugged/YouCompleteMe/ && python3 install.py --all
 
 " Plug 'autozimu/LanguageClient-neovim', {
 "     \ 'branch': 'next',
@@ -391,9 +378,16 @@ Plug 'ycm-core/YouCompleteMe'
 "     \ 'do':  'make fsautocomplete',
 "     \ }
 
-Plug 'tpope/vim-surround'
-Plug 'tpope/vim-commentary'
-
+" languages
+Plug 'google/vim-jsonnet'
+Plug 'pangloss/vim-javascript'
+Plug 'leafgarland/typescript-vim'
+Plug 'peitalin/vim-jsx-typescript'
+Plug 'styled-components/vim-styled-components', { 'branch': 'main' }
+Plug 'jparise/vim-graphql'
+Plug 'rust-lang/rust.vim'
+Plug 'jakwings/vim-pony'
+Plug 'ziglang/zig.vim'
 call plug#end()
 
 """"""""""""""""
@@ -430,8 +424,18 @@ let $FZF_DEFAULT_COMMAND = 'ag -g ""'
 " split + term
 "
 set splitbelow
-" set termsize=10x0
-cabbrev bterm bo term
+
+if has('nvim')
+    cabbrev bterm bo sp +te
+    noremap <leader>ot :bo sp +te<cr>
+    autocmd TermOpen * setlocal nonumber norelativenumber
+    autocmd TermOpen * resize 20
+    autocmd TermOpen * startinsert
+    tnoremap <C-o> <C-\><C-n>
+else
+   cabbrev bterm bo term 
+   noremap <leader>ot :bo term<cr>
+endif
 
 " share system clipboard
 set clipboard=unnamed
@@ -439,54 +443,30 @@ set clipboard=unnamed
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " => Colors and Fonts
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-" set term=xterm-256color
 
 " Enable syntax highlighting
 syntax enable
 
-" Enable 256 colors palette in Gnome Terminal
-if $COLORTERM == 'gnome-terminal'
-    set t_Co=256
-endif
+" Colors
+set termguicolors
 
-set t_Co=256
-" Set extra options when running in GUI mode
-if has("gui_running")
-    set guioptions-=T
-    set guioptions-=e
-    set t_Co=256
-    set guitablabel=%M\ %t
-endif
-
-
-if (has("termguicolors"))
-    set t_8f=[38;2;%lu;%lu;%lum
-    set t_8b=[48;2;%lu;%lu;%lum
-    set termguicolors
-endif
-
-set background=dark
-
-try
-    colorscheme one
-catch
-endtry
-
-let g:airline_theme='one'
+" themes
+colorscheme onedark
+let g:airline_theme='onedark'
+" Other airline goodies
 let g:airline#extensions#tabline#enabled = 1
+" could check which airline extensions are usefull and limit to minimum 
 
-" Manually setting omnifunc pop up colors
-" this was needed when colors didn't work
+" Manually setting omnifunc pop up colors this was needed when colors didn't work
+" double check this
 " highlight Pmenu ctermbg=gray guibg=gray
 " highlight PmenuSel ctermfg=black guifg=black
 
-" Set utf8 as standard encoding and en_US as the standard language
+" Set utf8 as standard encoding
 set encoding=utf8
 
 " Use Unix as the standard file type
 set ffs=unix,dos,mac
-
-" call one#highlight('Normal', 'abb2bf', '404142', '')
 
 """""""""""""""
 " => filetypes

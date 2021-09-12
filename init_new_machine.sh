@@ -2,7 +2,7 @@
 set -e
 source ./helpers.sh
 
-install_package_managers() {
+init_machine::install_package_managers() {
     # install homebrew https://brew.sh
     xcode-select --install
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -15,15 +15,15 @@ install_package_managers() {
     # brew install mas-cli/tap/mas          # this is needed on older macs
 }
 
-setup_git() {
-    check_email_var
+init_machine::setup_git() {
+    helpers::check_email_var
     git config --global user.email $EMAIL
     ssh-keygen -t rsa -b 4096 -C $EMAIL    
     brew install gh                         # In addition config GitHub cli
     gh auth login                           # This will also upload ssh key to GitHub
 }
 
-setup_keybindings() {
+init_machine::setup_keybindings() {
     # I use US layout but need to write Finnish often, and ¨ + a/o is awkward to type
     # so map alt + a/o to ä and ö
     # This will overwrite ø and å (If I remember correctly)
@@ -39,15 +39,17 @@ setup_keybindings() {
 EOF
 }
 
-configure_settings() {
+init_machine::configure_settings() {
     # Never configure stuff from GUI, store all settings here
-    # How to find settings: https://pawelgrzybek.com/change-macos-user-preferences-via-command-line/
+    # How to find correct setting path:
+    # https://pawelgrzybek.com/change-macos-user-preferences-via-command-line/
     # Simplest way to find correct setting:
     # 1. defaults read > before
     # 2. togle the setting in UI
     # 3. defaults read > before
     # 4. diff files
-    # who the hell thought that Desktop would be good location for screenshots?
+
+    # Who the hell thought that Desktop would be good location for screenshots?
     mkdir ~/Desktop/screenshots
     defaults write com.apple.screencapture location ~/Desktop/screenshots
     killall SystemUIServer    
@@ -55,8 +57,8 @@ configure_settings() {
     defaults write com.apple.finder AppleShowAllFiles YES
     defaults write com.apple.finder ShowPathbar -bool true
     defaults write com.apple.finder ShowStatusBar -bool true
-    # I don't like apples clock on the menu bar on BigSur and one cannot remove it,
-    # so best what I can do is to make int small analog clock instead
+    # I don't like apples clock on the menu bar and on BigSur and one cannot remove
+    # it, so best what I can do is to make it a small analog clock instead
     defaults write com.apple.menuextra.clock IsAnalog -bool true
     # Disable smart dashes as they’re annoying when typing code
     defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
@@ -70,21 +72,22 @@ configure_settings() {
     defaults write NSGlobalDomain KeyRepeat -int 2
 }
 
-setup_basic_env() {
-    check_email_var
-    append_to_shell_files "export EMAIL=${EMAIL}"
+init_machine::setup_basic_env() {
+    # I think having $EMAIL as global env variable helps
+    helpers::check_email_var
+    helpers::append_to_shell_files "export EMAIL=${EMAIL}"
 }
 
-main() {
-    # install_package_managers
-    # setup_git
-    # setup_keybindings
-    # configure_settings
-    # setup_basic_env
+init_machine::main() {
+    init_machine::install_package_managers
+    init_machine::setup_git
+    init_machine::setup_keybindings
+    init_machine::configure_settings
+    init_machine::setup_basic_env
     read -n 1 -s -r -p "Need to login to AppStore manually, press any key to continue"
     open -a App\ Store
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    main "$@"
+    init_machine::main "$@"
 fi

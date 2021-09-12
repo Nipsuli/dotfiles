@@ -1,7 +1,18 @@
 #!/bin/bash
+# Helper to quickly search last pass passwords
+# ONLY WORKS ON MAC
+# features:
+# * fuzzy search
+# * pushes pw to clipboard
+# * waits for any key to clear clipboard
 
 if ! command -v lpass &> /dev/null; then
     echo "Need to have lpass installed. Do: brew install lastpass-cli"
+    exit 1
+fi
+
+if ! command -v fzf &> /dev/null; then
+    echo "Need to have fzf installed. Do: brew install fzf"
     exit 1
 fi
 
