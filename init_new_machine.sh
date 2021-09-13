@@ -3,8 +3,13 @@ set -e
 source ./helpers.sh
 
 init_machine::install_package_managers() {
+    if type xcode-select >&- && xpath=$( xcode-select --print-path ) &&
+        test -d "${xpath}" && test -x "${xpath}" ; then
+        echo "xcode command line tools already installed!"
+    else
+        xcode-select --install
+    fi
     # install homebrew https://brew.sh
-    xcode-select --install
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     # These might be needed, not sure
     # git -C /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core fetch --unshallow
