@@ -39,7 +39,7 @@ install_apps::security() {
     # 2. add public key to gh at https://github.com/settings/keys
     # 3. list keys with gpg --list-secret-keys --keyid-format=long 
     # 4. add keys to git with git config --global user.signingkey <keyid>
-    # 5. use -S flag when commiting
+    # 5. use -S flag when commiting or git config --global commit.gpgSign
 }
 
 install_apps::utilities() {
@@ -79,11 +79,11 @@ install_apps::browsers() {
 install_apps::dev_stuff() {
     # Basics 
     brew install gh                         # GitHub cli is amazing
-    brew install --cask docker              # one should probably use docker for all dev stuff and run nothing on local machine
-    brew install --cask virtualbox          # even though everything is containered in 202X one might need VM's, ASDF requires restart, but that can be delayed
+    brew install docker              # one should probably use docker for all dev stuff and run nothing on local machine
+    brew install virtualbox          # even though everything is containered in 202X one might need VM's, ASDF requires restart, but that can be delayed
     # Extra editors
-    brew install --cask sublime-text        # sometimes sublime is what one needs
-    brew install --cask visual-studio-code  # and other times it's VSCode
+    brew install sublime-text        # sometimes sublime is what one needs
+    brew install visual-studio-code  # and other times it's VSCode
     helpers::append_to_shell_files 'export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"'
     # Basic scripting languages
     brew install deno                       # my current favourite scripting language/environment
