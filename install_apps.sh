@@ -42,7 +42,7 @@ install_apps::security() {
     # 5. use -S flag when commiting
 }
 
-install_apps::utilities() {}
+install_apps::utilities() {
     brew install --cask spotify             # ¡La Musica!
     brew install --cask rectangle           # window manager, NOTE: could try https://emmetapp.com at some point
     mas install 688211836                   # EasyRes every once and while you'll need non standard resolutions
@@ -61,7 +61,7 @@ install_apps::productivity() {
     brew install --cask fantastical         # so need to download manually to keep licence
 }
 
-install_apps::messengres() {}
+install_apps::messengres() {
     mas install 1176895641                  # Spark, email app, highly recommend this one!
     mas install 803453959                   # Slack
     mas install 747648890                   # Telegram
