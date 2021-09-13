@@ -18,6 +18,9 @@ init_machine::install_package_managers() {
     
     brew install mas                        # Commandline tool for App Store
     # brew install mas-cli/tap/mas          # this is needed on older macs
+    read -n 1 -s -r -p "Need to login to AppStore manually, press any key to continue"
+    open -a App\ Store
+    read -n 1 -s -r -p "Pacage managers setup, press any key to continue"
 }
 
 init_machine::setup_git() {
@@ -89,8 +92,6 @@ init_machine::main() {
     init_machine::setup_keybindings
     init_machine::configure_settings
     init_machine::setup_basic_env
-    read -n 1 -s -r -p "Need to login to AppStore manually, press any key to continue"
-    open -a App\ Store
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
