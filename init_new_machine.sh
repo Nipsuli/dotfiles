@@ -7,10 +7,15 @@ init_machine::install_package_managers() {
         test -d "${xpath}" && test -x "${xpath}" ; then
         echo "xcode command line tools already installed!"
     else
+        echo "Installing xcode command line tools"
         xcode-select --install
     fi
-    # install homebrew https://brew.sh
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    if type brew >&- ; then
+        echo "brew already installed"
+    else
+        echo "Installing homebrew, this might take tiem, read more from https://brew.sh"
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    fi
     # These might be needed, not sure
     # git -C /usr/local/Homebrew/Library/Taps/homebrew/homebrew-core fetch --unshallow
     # git -C /usr/local/Homebrew/Library/Taps/homebrew/homebrew-cask fetch --unshallow
@@ -18,9 +23,14 @@ init_machine::install_package_managers() {
     
     brew install mas                        # Commandline tool for App Store
     # brew install mas-cli/tap/mas          # this is needed on older macs
-    read -n 1 -s -r -p "Need to login to AppStore manually, press any key to continue"
-    open -a App\ Store
-    read -n 1 -s -r -p "Pacage managers setup, press any key to continue"
+
+    if mas account >&- ; then
+        echo "You've logged in in app store"
+    else
+        read -n 1 -s -r -p "Need to login to AppStore manually, press any key to continue\n"
+        open -a App\ Store
+        read -n 1 -s -r -p "press any key to continue\n"
+    fi
 }
 
 init_machine::setup_git() {
