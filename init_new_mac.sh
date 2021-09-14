@@ -37,8 +37,19 @@ init_machine::setup_git() {
     helpers::check_email_var
     git config --global user.email $EMAIL
     ssh-keygen -t rsa -b 4096 -C $EMAIL    
-    brew install gh                         # In addition config GitHub cli
-    gh auth login                           # This will also upload ssh key to GitHub
+    brew install gh                             # In addition config GitHub cli
+    gh auth login                               # This will also upload ssh key to GitHub
+    brew install --cask gpg-suite               # gpg is good for other things as well, butone should definitely sign their commits
+    gpg --quick-generate-key $EMAIL
+    read -n 1 -s -r -p "We will push the public key to to clipboard and open github for you to add the key. Press any key to continue"
+    echo
+    local keyid=$(gpg --list-signatures --with-colons | grep 'sig' | grep $EMAIL | head -n 1 | cut -d':' -f5) # | xargs gpg --export -a | pbcopy
+    gpg --export -a $keyid | pbcopy
+    open https://github.com/settings/gpg/new
+    read -n 1 -s -r -p "Continue after you've set up the key. Press any key to continue"
+    echo
+    git config --global user.signingkey $keyid
+    git config --global commit.gpgsign true
 }
 
 init_machine::setup_keybindings() {
@@ -57,7 +68,7 @@ init_machine::setup_keybindings() {
 EOF
 }
 
-init_machine::configure_settings() {
+init_machine::configure_system_preferences() {
     # Never configure stuff from GUI, store all settings here
     # How to find correct setting path:
     # https://pawelgrzybek.com/change-macos-user-preferences-via-command-line/
@@ -109,7 +120,7 @@ init_machine::main() {
     init_machine::install_package_managers
     init_machine::setup_git
     init_machine::setup_keybindings
-    init_machine::configure_settings
+    init_machine::configure_system_preferences
     init_machine::setup_basic_env
 }
 

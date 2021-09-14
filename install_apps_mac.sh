@@ -34,13 +34,7 @@ install_apps::security() {
     brew install lastpass-cli                   # cli version is nice as well, Note also https://github.com/lastpass/lastpass-cli/issues/604
     brew install --cask cloudflare-warp         # VPN that's not VPN
     mas install 1451685025                      # Wireguard
-    # MOVE TO GIT SETUP
-    brew install --cask gpg-suite               # gpg is good, one should e.g. sign their commits, setup:
-    # 1. Generate new key in gpg
-    # 2. add public key to gh at https://github.com/settings/keys
-    # 3. list keys with gpg --list-secret-keys --keyid-format=long 
-    # 4. add keys to git with git config --global user.signingkey <keyid>
-    # 5. use -S flag when commiting or git config --global commit.gpgSign
+    brew install --cask little-snitch           # know which apps call home and how often
 }
 
 install_apps::utilities() {
