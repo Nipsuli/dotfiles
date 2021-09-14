@@ -25,6 +25,8 @@ link_dotfiles::install_vim_plugins() {
         https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
     
     brew install cmake python mono go nodejs    # I use https://github.com/ycm-core/YouComplete as vim autocomplete, install all dependencies
+    brew install java                           # apperently this is needed as well, this is what the installation says one should do after:
+    sudo ln -sfn /usr/local/opt/openjdk/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk
     vim +'PlugInstall --sync' +qa               # Install vim plugins
 
     # Install YouCompleteMe
@@ -35,7 +37,7 @@ link_dotfiles::install_vim_plugins() {
 }
 
 link_dotfiles::install_tmux_plugins() {
-    git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tmp
+    git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
     tmux new -s install_session '~/.tmux/plugins/tpm/tpm && ~/.tmux/plugins/tpm/bindings/install_plugins'
 }
 
