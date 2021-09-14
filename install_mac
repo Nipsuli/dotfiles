@@ -1,0 +1,30 @@
+#!/bin/bash
+#######################################
+# Installs and configures Mac the way I like it
+#
+# <3 @Nipsuli <nipsuli@korvenlaita.fi>
+#######################################
+set -e
+
+source ./nipsulidotfiles.sh
+
+main() {
+  nipsulidotfiles::install_package_managers
+  nipsulidotfiles::setup_git
+  nipsulidotfiles::setup_keybindings
+  nipsulidotfiles::configure_system_preferences
+  nipsulidotfiles::setup_basic_env
+  nipsulidotfiles::configure_terminal
+  nipsulidotfiles::install_internet_security_apps
+  nipsulidotfiles::install_utilities
+  nipsulidotfiles::install_productivity_apps
+  nipsulidotfiles::install_messengers
+  nipsulidotfiles::install_browsers
+  nipsulidotfiles::install_gui_text_editors
+  nipsulidotfiles::install_virtualizations
+  nipsulidotfiles::install_helper_scripts
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi
