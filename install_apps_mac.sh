@@ -92,6 +92,7 @@ install_apps::dev_stuff() {
     helpers::append_to_shell_files 'export NVM_DIR="$HOME/.nvm"'
     helpers::append_to_shell_files '[ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"  # This loads nvm'
     helpers::append_to_shell_files '[ -s "/usr/local/opt/nvm/etc/bash_completion.d/nvm" ] && . "/usr/local/opt/nvm/etc/bash_completion.d/nvm"  # This loads nvm bash_completion'
+    brew install shellcheck                     # you'll anyways end up writing some shell scripts, at least check them
     # Helpers
     brew install direnv                         # Makes it possibile to scope environment variables to dirs, check more from: https://direnv.net
     helpers::append_to_shell_files 'eval "$(direnv hook %SHELL_NAME%)"'
@@ -106,6 +107,8 @@ install_apps::vscode_extensions() {
     # This does not contain all, VSCode is too sneaky
     code --install-extension iocave.customize-ui     # to be able to get rid of title bar
     code --install-extension VSCodeVim.Vim           # well, who doesn't want vim?
+    code --install-extension bmalehorn.shell-syntax  # Yup yup, shell syntax
+    code --install-extension timonwong.shellcheck    # + checking
 }
 
 install_apps::scripts() {
