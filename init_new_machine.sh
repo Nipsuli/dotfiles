@@ -70,7 +70,6 @@ init_machine::configure_settings() {
     # Who the hell thought that Desktop would be good location for screenshots?
     mkdir ~/Desktop/screenshots
     defaults write com.apple.screencapture location ~/Desktop/screenshots
-    killall SystemUIServer    
     # Some sanity to finder, like showing also hidden files and full paths
     defaults write com.apple.finder AppleShowAllFiles YES
     defaults write com.apple.finder ShowPathbar -bool true
@@ -88,6 +87,16 @@ init_machine::configure_settings() {
     defaults write NSGlobalDomain InitialKeyRepeat -int 15
     # Set a blazingly fast keyboard repeat rate:
     defaults write NSGlobalDomain KeyRepeat -int 2
+
+    # Hide dock to right so it won't take half of the screen
+    defaults write com.apple.dock autohide  int 1
+    defaults write com.apple.dock orientation right
+    defaults write com.apple.dock titlesize -int 16
+
+    echo "restarting applications" 
+    killall SystemUIServer
+    killall Finder
+    killall Dock
 }
 
 init_machine::setup_basic_env() {
