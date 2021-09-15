@@ -10,16 +10,16 @@
 #
 # This allows e.g. really dense date and time representation of:
 # {date}{day_of_week_char}{time}{timezone} e.g 2021-09-21U14:16:40+03:00
-# This is IMO good way to represent datetime to humans, as it contains additional
-# information in the same space as standard T delimiter.
+# This is IMO good way to represent datetime to humans, as it contains
+# additional information in the same space as with the standard T delimiter.
 # The above mentioned representation conforms to RFC 3339 but NOT to ISO 8601.
 # RFC 3339 does not care about the delimiter character, but in ISO 8601 it's
-# mandatory to have T as the date and time delimiter. This mainly because by
+# mandatory to have T as the date and time delimiter. This is mainly because by
 # definition ISO 8601 datetime strings are lexicographically sortable.
 # Read more about differences between RFC 3339 and ISO 6601 from:
 # https://ijmacd.github.io/rfc3339-iso8601/
 DOW=$(date +%u)
-case $DOW in
+case ${DOW} in
     1)
         DAY="M"
         ;;
@@ -41,5 +41,8 @@ case $DOW in
     7)
         DAY="U"
         ;;
+    *)
+        echo "WTF is this day? ${DOW}?"
+        exit 1
 esac
-echo $DAY
+echo "${DAY}"
