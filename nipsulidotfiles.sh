@@ -22,7 +22,7 @@ readonly BREW_INSTALL_SCRIPT="https://raw.githubusercontent.com/Homebrew/
 #   None
 #######################################
 nipsulidotfiles::check_email_var() {
-  if [ -z "${EMAIL}" ]; then
+  if [[ -z "${EMAIL:=}" ]]; then
     echo "No EMAIL environment variable available, bailing"
     exit 1
   fi
@@ -41,7 +41,7 @@ nipsulidotfiles::check_email_var() {
 #   text to append
 #######################################
 nipsulidotfiles::append_to_file() {
-  if [ -z "${1}" ] || [ -z "${2}" ]; then
+  if [[ -z "${1}" ]] || [[ -z "${2}" ]]; then
     echo "Invalid usage, needs 2 argumets: filepath and line to appends"
     exit 1
   fi
@@ -64,7 +64,7 @@ nipsulidotfiles::append_to_file() {
 #   text to append
 #######################################
 nipsulidotfiles::append_to_shell_files() {
-  if [ -z "${1}" ]; then
+  if [[ -z "${1}" ]]; then
     echo "Invalid usage, needs an argument: line to append to shell files"
     exit 1
   fi

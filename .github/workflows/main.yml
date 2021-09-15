@@ -9,4 +9,4 @@ jobs:
       - name: install ShellCheck
         run: sudo apt install shellcheck
       - name: ShellCheck
-        run: shellcheck -x -o all scripts/* nipsulidotfiles.sh install_mac
+        run: shellcheck -x scripts/* nipsulidotfiles.sh install_mac
