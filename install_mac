@@ -6,7 +6,7 @@
 #######################################
 set -e
 
-source ./nipsulidotfiles.sh
+source "$(dirname -- "$0")"/nipsulidotfiles.sh
 
 main() {
   nipsulidotfiles::install_package_managers
