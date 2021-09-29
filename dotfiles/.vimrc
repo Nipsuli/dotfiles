@@ -451,7 +451,11 @@ syntax enable
 set termguicolors
 
 " themes
-colorscheme onedark
+try
+    colorscheme onedark
+catch
+end
+
 let g:airline_theme='onedark'
 " Other airline goodies
 let g:airline#extensions#tabline#enabled = 1
