@@ -433,8 +433,8 @@ if has('nvim')
     autocmd TermOpen * startinsert
     tnoremap <C-o> <C-\><C-n>
 else
-   cabbrev bterm bo term 
-   noremap <leader>ot :bo term<cr>
+    cabbrev bterm bo term 
+    noremap <leader>ot :bo term<cr>
 endif
 
 " share system clipboard
