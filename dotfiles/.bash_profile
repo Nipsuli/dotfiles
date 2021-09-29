@@ -16,11 +16,11 @@ tmux::exe() {
 }
 
 tmux::send_keys_other_panes() {
-    local pane_current=$(tmux display-message -p '#P')
-    for pane in $(tmux list-panes -F '#P'); do
-        if (( $pane != $pane_current )); then
-            tmux::exe send-keys -t ${pane} "$@"
-        fi
+    # filtering only panes that are not the active one and are running shell
+    local readonly pane_filter="#{&&:#{==:#{pane_active},0},\
+#{||:#{==:#{pane_current_command},zsh},#{==:#{pane_current_command},bash}}}"
+    for pane in $(tmux list-panes -F "#P" -f "$pane_filter"); do
+        tmux::exe send-keys -t ${pane} "$@"
     done
 }
 
