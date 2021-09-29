@@ -305,6 +305,9 @@ nipsulidotfiles::install_commandline_tools() {
   brew install ripgrep
   brew install the_silver_searcher
   brew install tty-clock
+  brew install jq
+  brew install htop
+  brew install watch
   brew install coreutils findutils 
   brew install gnu-tar gnu-sed gawk gnutls gnu-indent gnu-getopt
   brew install grep wget gzip
@@ -566,6 +569,7 @@ nipsulidotfiles::install_internet_security_apps() {
 #####################################
 nipsulidotfiles::install_utilities() {
   brew install --cask spotify
+  brew install ncspot           # Commandline spotify for the true ppl
   brew install --cask rectangle # NOTE: could try https://emmetapp.com
   mas install 688211836         # EasyRes
   # mas purchase 1319778037     # iStat Menus,
@@ -575,6 +579,19 @@ nipsulidotfiles::install_utilities() {
   mas purchase 414568915        # Key Codes
   brew install --cask pingplotter
   brew install --cask disk-inventory-x
+  brew install --cask xbar      # Could probs replace iStat Menus with this
+}
+
+######################################
+# Install xbar plugins
+# Globals:
+#   None
+# Arguments:
+#   None
+#####################################
+nipsulidotfiles::install_xbar_plugins() {
+  curl https://raw.githubusercontent.com/unixorn/lima-xbar-plugin/main/lima-plugin --output ~/Library/Application\ Support/xbar/plugins/lima-plugin.30s
+  chmod +x ~/Library/Application\ Support/xbar/plugins/lima-plugin.30s 
 }
 
 ######################################
@@ -639,6 +656,7 @@ nipsulidotfiles::install_browsers() {
   brew install --cask opera
   brew install --cask opera-gx
   brew install --cask qutebrowser
+  mas purchase 1480933944             # Vimari plugin for Safari
 }
 
 ######################################
@@ -701,6 +719,7 @@ nipsulidotfiles::install_virtualizations() {
   # shellcheck disable=SC2016
   nipsulidotfiles::append_to_shell_files 'eval "$(direnv hook %SHELL_NAME%)"'
   brew install dmg2img
+  brew install lima
 }
 
 ######################################
