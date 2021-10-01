@@ -118,7 +118,7 @@ nipsulidotfiles::install_homebrew() {
 }
 
 #######################################
-# Install command line client for App Store and ensure one is logged in 
+# Install command line client for App Store and ensure one is logged in
 # Globals:
 #   None
 # Arguments:
@@ -169,11 +169,11 @@ nipsulidotfiles::setup_git() {
   local keyid
   nipsulidotfiles::check_email_var
   git config --global user.email "${EMAIL}"
-  ssh-keygen -t rsa -b 4096 -C "${EMAIL}"    
+  ssh-keygen -t rsa -b 4096 -C "${EMAIL}"
   brew install gh
   gh auth login                   # This will also upload ssh key to GitHub
   brew install --cask gpg-suite
-  gpg --quick-generate-key "${EMAIL}"
+  gpg --quick-generate-key "<${EMAIL}>"
   read -n 1 -s -r -p "This will push the public gpg key to to clipboard and open
     GitHub for you to add the key. Press any key to continue"
   echo
@@ -220,13 +220,13 @@ EOF
 # Never configure stuff from GUI, store all settings here
 # How to find correct setting path:
 # https://pawelgrzybek.com/change-macos-user-preferences-via-command-line/
-# 
+#
 # Simplest way to find correct setting:
 # 1. defaults read > before
 # 2. toggle the setting in UI
 # 3. defaults read > before
 # 4. diff files
-# 
+#
 # These settings are sane defaults IMO, read the function body for every setting
 # Most likely this is still missing some valuable settings
 # Globals:
@@ -261,7 +261,7 @@ nipsulidotfiles::configure_system_preferences() {
   defaults write com.apple.dock orientation right
   defaults write com.apple.dock titlesize -int 16
 
-  echo "restarting affected applications" 
+  echo "restarting affected applications"
   killall SystemUIServer
   killall Finder
   killall Dock
@@ -289,7 +289,7 @@ nipsulidotfiles::setup_basic_env() {
 # * fzf, rg and ag for search stuff
 # * tty-clock, u know, why not ⊂(◉‿◉)つ
 # * lot of small utils, gnu versions from many of them
-# 
+#
 # check for more possible goodies:
 # https://dev.to/_darrenburns/10-tools-to-power-up-your-command-line-4id4
 # Globals:
@@ -308,7 +308,7 @@ nipsulidotfiles::install_commandline_tools() {
   brew install jq
   brew install htop
   brew install watch
-  brew install coreutils findutils 
+  brew install coreutils findutils
   brew install gnu-tar gnu-sed gawk gnutls gnu-indent gnu-getopt
   brew install grep wget gzip
 }
@@ -468,12 +468,12 @@ nipsulidotfiles::install_vim() {
   # I prefer Plug as vim plugin manager
   curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-  
+
   ln -sf "${PWD}/dotfiles/.vimrc" ~/.vimrc
   # make things work with neovim as well
   mkdir -p ~/.config/nvim/
   ln -sf "${PWD}/dotfiles/init.vim" ~/.config/nvim/init.vim
-  
+
   vim +'PlugInstall --sync' +qa
 
   # Install YouCompleteMe
@@ -481,7 +481,7 @@ nipsulidotfiles::install_vim() {
   # nipsulidotfiles::install_languages
   local curr_dir="${PWD}"
   cd ~/.vim/plugged/YouCompleteMe/
-  python3 install.py --all 
+  python3 install.py --all
   cd "${curr_dir}"
 }
 
@@ -497,7 +497,7 @@ nipsulidotfiles::install_vim() {
 ######################################
 nipsulidotfiles::install_tmux() {
   brew install tmux
-  # this next was needed at least before for tmux copy, not 100% any more 
+  # this next was needed at least before for tmux copy, not 100% any more
   brew install reattach-to-user-namespace
   ln -sf "${PWD}/dotfiles/.tmux.conf" ~/.tmux.conf
   git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
@@ -591,14 +591,14 @@ nipsulidotfiles::install_utilities() {
 #####################################
 nipsulidotfiles::install_xbar_plugins() {
   curl https://raw.githubusercontent.com/unixorn/lima-xbar-plugin/main/lima-plugin --output ~/Library/Application\ Support/xbar/plugins/lima-plugin.30s
-  chmod +x ~/Library/Application\ Support/xbar/plugins/lima-plugin.30s 
+  chmod +x ~/Library/Application\ Support/xbar/plugins/lima-plugin.30s
 }
 
 ######################################
 # Install productivity apps
 # * Obsidian for notes
 # * MS ToDo,  I used to use Wunderlist, but MS bought it,
-#             and basically made ToDo from that. 
+#             and basically made ToDo from that.
 # * Fantastical, best calendar. Period.
 # * Spark, email app, highly recommend this one!
 # Globals:
