@@ -195,6 +195,7 @@ map <leader>ba :bufdo bd<cr>
 
 map <leader>l :bnext<cr>
 map <leader>h :bprevious<cr>
+nnoremap <leader>ls :ls<cr>:b
 
 " Useful mappings for managing tabs
 map <leader>tn :tabnew<cr>
@@ -358,12 +359,13 @@ endfunction
 call plug#begin('~/.vim/plugged')
 " Add some color to life
 Plug 'Nipsuli/onedark.vim', { 'branch': 'add-airline-terminal-colors' } " See https://github.com/joshdick/onedark.vim/pull/287
+" Plug 'joshdick/onedark.vim'
 Plug 'vim-airline/vim-airline'
 
 " Make life easier
 Plug 'junegunn/fzf', { 'do': './install --bin' }
 Plug 'junegunn/fzf.vim'
-Plug 'tpope/vim-fugitive'
+" Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-surround'
 Plug 'tpope/vim-commentary'
 Plug 'ycm-core/YouCompleteMe' " Remember to cd ~/.vim/plugged/YouCompleteMe/ && python3 install.py --all
@@ -454,7 +456,7 @@ set termguicolors
 try
     colorscheme onedark
 catch
-end
+endtry
 
 let g:airline_theme='onedark'
 " Other airline goodies
@@ -483,7 +485,7 @@ autocmd FileType javascript setlocal et ts=2 sts=2 sw=2
 autocmd FileType typescript setlocal et ts=2 sts=2 sw=2
 autocmd FileType typescriptreact setlocal et ts=2 sts=2 sw=2
 autocmd FileType jsonnet setlocal et ts=2 sts=2 sw=2
-autocmd FileType yaml setlocal et ts=2 sts=2 sw=2
+autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
 autocmd FileType sql setlocal et ts=2 sts=2 sw=2
 
 " set filetypes as typescriptreact from vim-jsx-typescript
