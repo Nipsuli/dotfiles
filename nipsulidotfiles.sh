@@ -7,8 +7,7 @@
 #######################################
 set -e
 
-readonly BREW_INSTALL_SCRIPT="https://raw.githubusercontent.com/Homebrew/
-  install/HEAD/install.sh"
+readonly BREW_INSTALL_SCRIPT="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
 
 #######################################
 # BEGIN GENERIC HELPERS
@@ -68,11 +67,13 @@ nipsulidotfiles::append_to_shell_files() {
     echo "Invalid usage, needs an argument: line to append to shell files"
     exit 1
   fi
-  touch ~/.bash_profile
+  # touch ~/.bash_profile
+  touch ~/.bashrc
   touch ~/.zshrc
   local shell_name="bash"
   local formated_str=${1/\%SHELL_NAME\%/${shell_name}}
-  nipsulidotfiles::append_to_file ~/.bash_profile "${formated_str}"
+  # nipsulidotfiles::append_to_file ~/.bash_profile "${formated_str}"
+  nipsulidotfiles::append_to_file ~/.bashrc "${formated_str}"
   local shell_name="zsh"
   local formated_str=${1/\%SHELL_NAME\%/${shell_name}}
   nipsulidotfiles::append_to_file ~/.zshrc "${formated_str}"
@@ -96,6 +97,29 @@ nipsulidotfiles::ensure_xcode_commandline_tools() {
   else
     echo "Installing xcode command line tools"
     xcode-select --install
+  fi
+}
+
+
+#######################################
+# Ensure homebrew is installed WSL
+# https://brew.sh
+# Globals:
+#   None
+# Arguments:
+#   None
+######################################
+nipsulidotfiles::install_homebrew_wsl() {
+  if type brew >&- ; then
+    echo "brew already installed"
+  else
+    echo "Installing homebrew, this might take time, read more from
+      https://brew.sh"
+    /bin/bash -c "$(curl -fsSL "${BREW_INSTALL_SCRIPT}")"
+    echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> /home/nipsuli/.profile
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+    sudo apt-get install build-essential
+    # brew install gcc
   fi
 }
 
@@ -157,7 +181,6 @@ nipsulidotfiles::install_package_managers() {
 
 #######################################
 # Configures git and GitHub cli
-# * git with gpg signing
 # * GitHub client (gh)
 # * adds ssh key to GitHub
 # Globals:
@@ -172,6 +195,16 @@ nipsulidotfiles::setup_git() {
   ssh-keygen -t rsa -b 4096 -C "${EMAIL}"
   brew install gh
   gh auth login                   # This will also upload ssh key to GitHub
+}
+
+#######################################
+# Configures git with gpg signing
+# Globals:
+#   EMAIL
+# Arguments:
+#   None
+######################################
+nipsulidotfiles::setup_git_commit_signing_mac() {
   brew install --cask gpg-suite
   gpg --quick-generate-key "<${EMAIL}>"
   read -n 1 -s -r -p "This will push the public gpg key to to clipboard and open
@@ -288,6 +321,35 @@ nipsulidotfiles::setup_basic_env() {
 # * bat, better looking cat
 # * fzf, rg and ag for search stuff
 # * tty-clock, u know, why not ⊂(◉‿◉)つ
+#
+# check for more possible goodies:
+# https://dev.to/_darrenburns/10-tools-to-power-up-your-command-line-4id4
+# Globals:
+#   None
+# Arguments:
+#   None
+######################################
+nipsulidotfiles::install_commandline_tools_wsl() {
+  # sudo apt install -y exa
+  brew install exa
+  sudo apt install -y bat
+  sudo apt install -y fzf
+  # sudo apt install -y ripgrep
+  brew install ripgrep
+  # sudo apt install -y the_silver_searcher
+  brew install the_silver_searcher
+  sudo apt install -y tty-clock
+  sudo apt install -y jq
+}
+
+#######################################
+# Install tools that make command line experience better
+#
+# Tools to be installed:
+# * exa, better looking ls
+# * bat, better looking cat
+# * fzf, rg and ag for search stuff
+# * tty-clock, u know, why not ⊂(◉‿◉)つ
 # * lot of small utils, gnu versions from many of them
 #
 # check for more possible goodies:
@@ -336,8 +398,6 @@ nipsulidotfiles::link_shell_profile() {
 # [starship](https://starship.rs). It's simple, fast and configurable, but the
 # defaults are already spot on.
 #
-# Starship requires [nerdfonts](https://www.nerdfonts.com) so installing two of
-# my favourites: Hack and Fira-Code
 # Globals:
 #   None
 # Arguments:
@@ -347,6 +407,18 @@ nipsulidotfiles::configure_console_styles() {
   brew install starship
   # shellcheck disable=SC2016
   nipsulidotfiles::append_to_shell_files 'eval "$(starship init %SHELL_NAME%)"'
+}
+
+######################################
+# Starship requires [nerdfonts](https://www.nerdfonts.com) so installing two of
+# my favourites: Hack and Fira-Code
+#
+# Globals:
+#   None
+# Arguments:
+#   None
+######################################
+nipsulidotfiles::install_fonts_mac() {
   brew tap homebrew/cask-fonts
   brew install --cask font-hack-nerd-font
   brew install --cask font-fira-code
@@ -388,15 +460,14 @@ nipsulidotfiles::install_python() {
 nipsulidotfiles::install_node() {
   brew install nodejs
   brew install nvm
-  mkdir ~/.nvm
+  mkdir -p ~/.nvm
   # shellcheck disable=SC2016
   nipsulidotfiles::append_to_shell_files \
     'export NVM_DIR="$HOME/.nvm"'
   nipsulidotfiles::append_to_shell_files \
     '[ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"'
   nipsulidotfiles::append_to_shell_files \
-    '[ -s "/usr/local/opt/nvm/etc/bash_completion.d/nvm" ]
-    && . "/usr/local/opt/nvm/etc/bash_completion.d/nvm"'
+    '[ -s "/usr/local/opt/nvm/etc/bash_completion.d/nvm" ] && . "/usr/local/opt/nvm/etc/bash_completion.d/nvm"'
 }
 
 ######################################
@@ -416,18 +487,23 @@ nipsulidotfiles::install_languages() {
   nipsulidotfiles::install_node
   brew install deno
   brew install cmake
-  brew install mono
+  # brew install mono
+  # sudo apt install gnupg ca-certificates
+  # sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 3FA7E0328081BFF6A14DA29AA6A19B38D3D831EF
+  # echo "deb https://download.mono-project.com/repo/ubuntu stable-focal main" | sudo tee /etc/apt/sources.list.d/mono-official-stable.list
+  # sudo apt update
+  # sudo apt install mono-devel
   brew install go
   brew install java
-  local flags=(
-    /usr/local/opt/openjdk/libexec/openjdk.jdk
-    /Library/Java/JavaVirtualMachines/openjdk.jdk
-  )
-  sudo ln -sfn "${flags[@]}"
+  # local flags=(
+  #   /usr/local/opt/openjdk/libexec/openjdk.jdk
+  #   /Library/Java/JavaVirtualMachines/openjdk.jdk
+  # )
+  # sudo ln -sfn "${flags[@]}"
   brew install julia
   brew install zig
-  brew install vlang
-  brew install ponyc
+  # brew install vlang
+  # brew install ponyc
   brew install shellcheck # you will write shell scripts, at least check them
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 }
@@ -449,11 +525,6 @@ nipsulidotfiles::install_alacrity() {
 }
 
 #######################################
-# Install and configures vim
-# * Plug as plugin manger
-# * links vimrc
-# * installs plugins
-# * installs YouCompleteMe for autocompletion
 # Installs both vim and neovim
 # So far I haven't seen any benefits from neovim but keeping it here untill I've
 # evaluated it more
@@ -465,6 +536,20 @@ nipsulidotfiles::install_alacrity() {
 nipsulidotfiles::install_vim() {
   brew install vim
   brew install neovim
+}
+
+#######################################
+# Configures vim
+# * Plug as plugin manger
+# * links vimrc
+# * installs plugins
+# * installs YouCompleteMe for autocompletion
+# Globals:
+#   None
+# Arguments:
+#   None
+######################################
+nipsulidotfiles::configure_vim() {
   # I prefer Plug as vim plugin manager
   curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
@@ -486,10 +571,7 @@ nipsulidotfiles::install_vim() {
 }
 
 #######################################
-# Install and configures tmux
-# * tpm for plugin manager
-# * links .tmux.conf
-# * installs plugins
+# Install tmux
 # Globals:
 #   None
 # Arguments:
@@ -499,6 +581,19 @@ nipsulidotfiles::install_tmux() {
   brew install tmux
   # this next was needed at least before for tmux copy, not 100% any more
   brew install reattach-to-user-namespace
+}
+
+#######################################
+# Configures tmux
+# * tpm for plugin manager
+# * links .tmux.conf
+# * installs plugins
+# Globals:
+#   None
+# Arguments:
+#   None
+######################################
+nipsulidotfiles::configure_tmux() {
   ln -sf "${PWD}/dotfiles/.tmux.conf" ~/.tmux.conf
   git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
   # shellcheck disable=SC2088
@@ -519,14 +614,43 @@ nipsulidotfiles::install_tmux() {
 # Arguments:
 #   None
 ######################################
+nipsulidotfiles::configure_terminal_wsl() {
+  nipsulidotfiles::install_commandline_tools_wsl
+  nipsulidotfiles::link_shell_profile
+  nipsulidotfiles::configure_console_styles
+  # nipsulidotfiles::install_languages # FIX ME: this requires some fixing
+  # as YCM doesn't work, some tips from https://github.com/ycm-core/YouCompleteMe#linux-64-bit
+  sudo apt install -y build-essential cmake vim-nox python3-dev
+  sudo apt install -y mono-complete golang nodejs default-jdk npm
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+  nipsulidotfiles::configure_vim
+  nipsulidotfiles::configure_tmux
+}
+
+#######################################
+# Install terminal tools and does configuratiosn to make terminal life enjoyable
+# * Configures shell (bash/zsh)
+# * alacritty, terminal emulator
+# * vim (/neovim), preferred text editor
+# * tmux, terminal multiplexer
+# * + all kind of other goodies
+#
+# Globals:
+#   None
+# Arguments:
+#   None
+######################################
 nipsulidotfiles::configure_terminal() {
   nipsulidotfiles::install_commandline_tools
   nipsulidotfiles::link_shell_profile
   nipsulidotfiles::configure_console_styles
+  nipsulidotfiles::install_fonts_mac
   nipsulidotfiles::install_languages
   nipsulidotfiles::install_alacrity
   nipsulidotfiles::install_vim
+  nipsulidotfiles::configure_vim
   nipsulidotfiles::install_tmux
+  nipsulidotfiles::configure_tmux
 }
 
 ######################################

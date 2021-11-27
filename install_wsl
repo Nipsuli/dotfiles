@@ -1,0 +1,24 @@
+#!/bin/bash
+#######################################
+# Installs and configures WSL the way I like it
+#
+# <3 @Nipsuli <nipsuli@korvenlaita.fi>
+#######################################
+set -e
+
+# shellcheck source=./nipsulidotfiles.sh
+source "$(dirname -- "$0")"/nipsulidotfiles.sh
+
+main() {
+  sudo apt update
+  nipsulidotfiles::install_homebrew_wsl
+  nipsulidotfiles::setup_git
+  nipsulidotfiles::setup_basic_env
+  nipsulidotfiles::configure_terminal_wsl
+#   nipsulidotfiles::install_virtualizations  # TODO figure this out
+  nipsulidotfiles::install_helper_scripts
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi
