@@ -390,6 +390,8 @@ Plug 'jparise/vim-graphql'
 Plug 'rust-lang/rust.vim'
 Plug 'jakwings/vim-pony'
 Plug 'ziglang/zig.vim'
+Plug 'evanleck/vim-svelte', {'branch': 'main'}
+Plug 'hashivim/vim-terraform'
 call plug#end()
 
 """"""""""""""""
