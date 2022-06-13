@@ -7,8 +7,7 @@
 #######################################
 set -e
 
-readonly BREW_INSTALL_SCRIPT="https://raw.githubusercontent.com/Homebrew/
-  install/HEAD/install.sh"
+readonly BREW_INSTALL_SCRIPT="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
 
 #######################################
 # BEGIN GENERIC HELPERS
@@ -151,7 +150,7 @@ nipsulidotfiles::install_appstore_cli() {
 ######################################
 nipsulidotfiles::install_package_managers() {
   nipsulidotfiles::ensure_xcode_commandline_tools
-  nipsulidotfiles:install_homebrew
+  nipsulidotfiles::install_homebrew
   nipsulidotfiles::install_appstore_cli
 }
 
