@@ -168,6 +168,7 @@ nipsulidotfiles::setup_git() {
   local keyid
   nipsulidotfiles::check_email_var
   git config --global user.email "${EMAIL}"
+  git config pull.rebase false
   ssh-keygen -t rsa -b 4096 -C "${EMAIL}"
   brew install gh
   gh auth login                   # This will also upload ssh key to GitHub
