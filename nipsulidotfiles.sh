@@ -256,7 +256,7 @@ nipsulidotfiles::configure_system_preferences() {
   defaults write NSGlobalDomain KeyRepeat -int 2
 
   # Hide dock to right so it won't take half of the screen
-  defaults write com.apple.dock autohide  int 1
+  defaults write com.apple.dock autohide -int 1
   defaults write com.apple.dock orientation right
   defaults write com.apple.dock titlesize -int 16
 
