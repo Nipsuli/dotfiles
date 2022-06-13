@@ -235,7 +235,7 @@ EOF
 ######################################
 nipsulidotfiles::configure_system_preferences() {
   # Who the hell thought that Desktop would be good location for screenshots?
-  mkdir ~/Desktop/screenshots
+  mkdir -p ~/Desktop/screenshots
   defaults write com.apple.screencapture location ~/Desktop/screenshots
   # Some sanity to finder, like showing also hidden files and full paths
   defaults write com.apple.finder AppleShowAllFiles YES
@@ -387,7 +387,7 @@ nipsulidotfiles::install_python() {
 nipsulidotfiles::install_node() {
   brew install nodejs
   brew install nvm
-  mkdir ~/.nvm
+  mkdir -p ~/.nvm
   # shellcheck disable=SC2016
   nipsulidotfiles::append_to_shell_files \
     'export NVM_DIR="$HOME/.nvm"'
@@ -415,7 +415,7 @@ nipsulidotfiles::install_languages() {
   nipsulidotfiles::install_node
   brew install deno
   brew install cmake
-  brew install mono
+  # brew install mono
   brew install go
   brew install java
   local flags=(
@@ -423,10 +423,10 @@ nipsulidotfiles::install_languages() {
     /Library/Java/JavaVirtualMachines/openjdk.jdk
   )
   sudo ln -sfn "${flags[@]}"
-  brew install julia
-  brew install zig
-  brew install vlang
-  brew install ponyc
+  # brew install julia
+  # brew install zig
+  # brew install vlang
+  # brew install ponyc
   brew install shellcheck # you will write shell scripts, at least check them
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 }
@@ -575,7 +575,7 @@ nipsulidotfiles::install_utilities() {
                                 # I've used the brew version and manual licence
                                 # You probably should use the mas version
   brew install --cask istat-menus
-  mas purchase 414568915        # Key Codes
+  # mas purchase 414568915        # Key Codes
   brew install --cask pingplotter
   brew install --cask disk-inventory-x
   brew install --cask xbar      # Could probs replace iStat Menus with this
@@ -655,7 +655,7 @@ nipsulidotfiles::install_browsers() {
   brew install --cask opera
   brew install --cask opera-gx
   brew install --cask qutebrowser
-  mas purchase 1480933944             # Vimari plugin for Safari
+  # mas purchase 1480933944             # Vimari plugin for Safari
 }
 
 ######################################
@@ -713,7 +713,7 @@ nipsulidotfiles::install_gui_text_editors() {
 ####################################
 nipsulidotfiles::install_virtualizations() {
   brew install docker
-  brew install virtualbox
+  # brew install virtualbox
   brew install direnv
   # shellcheck disable=SC2016
   nipsulidotfiles::append_to_shell_files 'eval "$(direnv hook %SHELL_NAME%)"'
