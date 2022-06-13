@@ -445,7 +445,7 @@ nipsulidotfiles::install_languages() {
 ######################################
 nipsulidotfiles::install_alacrity() {
   brew install alacritty
-  ln -sf "${PWD}/dotfiles/.alacritty.yml" ~/.alacritty.ym
+  ln -sf "${PWD}/dotfiles/.alacritty.yml" ~/.alacritty.yml
 }
 
 #######################################
