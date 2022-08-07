@@ -311,6 +311,7 @@ nipsulidotfiles::install_commandline_tools() {
   brew install coreutils findutils
   brew install gnu-tar gnu-sed gawk gnutls gnu-indent gnu-getopt
   brew install grep wget gzip
+  brew install btop
 }
 
 #######################################
@@ -412,6 +413,8 @@ nipsulidotfiles::install_node() {
 #   None
 ####################################
 nipsulidotfiles::install_languages() {
+  brew install asdf      # manage most languages
+  # most likely can replace these with asdf plugins
   nipsulidotfiles::install_python
   nipsulidotfiles::install_node
   brew install deno
@@ -428,7 +431,7 @@ nipsulidotfiles::install_languages() {
   # brew install zig
   # brew install vlang
   # brew install ponyc
-  brew install shellcheck # you will write shell scripts, at least check them
+  brew install shellcheck          # you will write shell scripts, at least check them
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 }
 
@@ -505,6 +508,13 @@ nipsulidotfiles::install_tmux() {
   tmux new -s install_session \
     '~/.tmux/plugins/tpm/tpm && ~/.tmux/plugins/tpm/bindings/install_plugins'
 }
+nipsulidotfiles::install_zellij () {
+  cargo install cargo-binstall
+  cargo-binstall zellij
+  mkdir -p ~/.config/zellij
+  ln -sf "${PWD}/dotfiles/zellij_config.yaml" ~/.config/zellij/config.yaml
+
+}
 
 #######################################
 # Install terminal tools and does configuratiosn to make terminal life enjoyable
@@ -527,6 +537,7 @@ nipsulidotfiles::configure_terminal() {
   nipsulidotfiles::install_alacrity
   nipsulidotfiles::install_vim
   nipsulidotfiles::install_tmux
+  nipsulidotfiles::install_zellij
 }
 
 ######################################
@@ -576,10 +587,11 @@ nipsulidotfiles::install_utilities() {
                                 # I've used the brew version and manual licence
                                 # You probably should use the mas version
   brew install --cask istat-menus
-  # mas purchase 414568915        # Key Codes
+  mas install 414568915         # Key Codes
   brew install --cask pingplotter
   brew install --cask disk-inventory-x
   brew install --cask xbar      # Could probs replace iStat Menus with this
+  brew install hstr             # command history searcher
 }
 
 ######################################
@@ -609,11 +621,12 @@ nipsulidotfiles::install_xbar_plugins() {
 nipsulidotfiles::install_productivity_apps() {
   brew install --cask obsidian
   mas install 1274495053
-  # mas purchase 975937182      # Fantastical,
+  # mas install 975937182       # Fantastical,
                                 # I've used the brew version and manual licence
                                 # You probably should use the mas version
   brew install --cask fantastical
   mas install 1176895641        # Spark
+  brew install --cask shottr    # Screenshot app
 }
 
 ######################################
@@ -656,7 +669,7 @@ nipsulidotfiles::install_browsers() {
   brew install --cask opera
   brew install --cask opera-gx
   brew install --cask qutebrowser
-  # mas purchase 1480933944             # Vimari plugin for Safari
+  mas install 1480933944             # Vimari plugin for Safari
 }
 
 ######################################
