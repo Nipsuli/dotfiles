@@ -414,6 +414,7 @@ nipsulidotfiles::install_node() {
 ####################################
 nipsulidotfiles::install_languages() {
   brew install asdf      # manage most languages
+  # remember config echo -e "\n. $(brew --prefix asdf)/libexec/asdf.sh" >> ${ZDOTDIR:-~}/.zshrc
   # most likely can replace these with asdf plugins
   nipsulidotfiles::install_python
   nipsulidotfiles::install_node
