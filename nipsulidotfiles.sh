@@ -656,6 +656,8 @@ nipsulidotfiles::install_browsers() {
   brew install --cask opera
   brew install --cask opera-gx
   brew install --cask qutebrowser
+  mas purchase 553245401              # Friendly Streaming Browser
+  mas purchase 1054607607             # Helium
   mas purchase 1480933944             # Vimari plugin for Safari
 }
 

@@ -454,7 +454,7 @@ set termguicolors
 try
     colorscheme onedark
 catch
-end
+endtry
 
 let g:airline_theme='onedark'
 " Other airline goodies
