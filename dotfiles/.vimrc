@@ -379,6 +379,10 @@ Plug 'ycm-core/YouCompleteMe' " Remember to cd ~/.vim/plugged/YouCompleteMe/ && 
 " Plug 'ionide/Ionide-vim', {
 "     \ 'do':  'make fsautocomplete',
 "     \ }
+"
+" for deno 
+Plug 'jayli/vim-easycomplete'
+Plug 'SirVer/ultisnips'
 
 " languages
 Plug 'google/vim-jsonnet'

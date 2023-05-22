@@ -2,6 +2,7 @@
 export EDITOR='vim'
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
+export VIRTUAL_ENV_DISABLE_PROMPT=1
 # Try to also look from ~/bin
 export PATH=$PATH:$HOME/bin/
 
