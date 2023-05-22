@@ -112,6 +112,7 @@ nipsulidotfiles::install_homebrew() {
   else
     echo "Installing homebrew, this might take time, read more from
       https://brew.sh"
+    # shellcheck disable=SC2312
     /bin/bash -c "$(curl -fsSL "${BREW_INSTALL_SCRIPT}")"
   fi
 }
@@ -177,12 +178,14 @@ nipsulidotfiles::setup_git() {
   read -n 1 -s -r -p "This will push the public gpg key to to clipboard and open
     GitHub for you to add the key. Press any key to continue"
   echo
+  # shellcheck disable=SC2312
   keyid=$(gpg --list-signatures --with-colons \
     | grep 'sig' \
     | grep "${EMAIL}" \
     | head -n 1 \
     | cut -d':' -f5)
   readonly keyid
+  # shellcheck disable=SC2312
   gpg --export -a "${keyid}" | pbcopy
   open https://github.com/settings/gpg/new
   read -n 1 -s -r -p "Continue after you've set up the key.
@@ -389,6 +392,7 @@ nipsulidotfiles::install_python() {
 nipsulidotfiles::install_languages() {
   brew install asdf      # manage most languages
   # remember config
+  # shellcheck disable=SC2312
   nipsulidotfiles::append_to_shell_files "$(brew --prefix asdf)/libexec/asdf.sh"
   asdf install nodejs latest
   nipsulidotfiles::install_python
@@ -408,6 +412,7 @@ nipsulidotfiles::install_languages() {
   # brew install vlang
   # brew install ponyc
   brew install shellcheck          # you will write shell scripts, at least check them
+  # shellcheck disable=SC2312
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 }
 
@@ -646,9 +651,13 @@ nipsulidotfiles::install_browsers() {
   brew install --cask vivaldi
   brew install --cask google-chrome
   brew install --cask firefox
-  brew install --cask opera
-  brew install --cask opera-gx
-  brew install --cask qutebrowser
+  mkdir -p ~/code
+  git clone git@github.com:andreasgrafen/cascade.git ~/code/cascade
+  mkdir -p "$(echo /Users/"${USER}"/Library/Application\ Support/Firefox/Profiles/*.default-*)"/chrome
+  ln -s ~/code/cascade/userChrome.css "$(echo ~/Library/Application\ Support/Firefox/Profiles/*.default-*)"/chrome/userChrome.css
+  # brew install --cask opera
+  # brew install --cask opera-gx
+  # brew install --cask qutebrowser
   mas install 1480933944             # Vimari plugin for Safari
 }
 

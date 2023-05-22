@@ -24,6 +24,7 @@ if ! lpass status -q; then
   lpass login "${EMAIL}"
 fi
 
+# shellcheck disable=SC2312
 lpass ls --long \
   | fzf \
   | sed -E "s/.*\[id:[[:space:]]([0-9]+)\].*/\1/" \
