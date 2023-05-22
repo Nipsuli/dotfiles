@@ -327,8 +327,8 @@ nipsulidotfiles::install_commandline_tools() {
 #   None
 ######################################
 nipsulidotfiles::link_shell_profile() {
-  ln -sf "${PWD}/dotfiles/.bash_profile" ~/.bash_profile_shared
-  nipsulidotfiles::append_to_shell_files "source ~/.bash_profile_shared"
+  ln -sf "${PWD}/dotfiles/.nipsuli_profile" ~/.nipsuli_profile
+  nipsulidotfiles::append_to_shell_files "source ~/.nipsuli_profile"
 }
 
 ######################################
@@ -357,8 +357,10 @@ nipsulidotfiles::configure_console_styles() {
 
 ######################################
 # Install python and friends
-# * pyenv for managing environments
-# * poetry for making dependency management nicer
+# * pipx for running python apps
+# * pdm for package management
+#
+# TODO: figure out virtual env stuff
 #
 # Globals:
 #   None
@@ -366,38 +368,10 @@ nipsulidotfiles::configure_console_styles() {
 #   None
 ####################################
 nipsulidotfiles::install_python() {
-  brew install python
-  brew install pyenv
-  # shellcheck disable=SC2016
-  nipsulidotfiles::append_to_shell_files 'export PYENV_ROOT="$HOME/.pyenv"'
-  # shellcheck disable=SC2016
-  nipsulidotfiles::append_to_shell_files 'export PATH="$PYENV_ROOT/bin:$PATH"'
-  # shellcheck disable=SC2016
-  nipsulidotfiles::append_to_shell_files 'eval "$(pyenv init --path)"'
-  brew install poetry
-}
-
-######################################
-# Install node and friends
-# * nvm for managing node versions
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-####################################
-nipsulidotfiles::install_node() {
-  brew install nodejs
-  brew install nvm
-  mkdir -p ~/.nvm
-  # shellcheck disable=SC2016
-  nipsulidotfiles::append_to_shell_files \
-    'export NVM_DIR="$HOME/.nvm"'
-  nipsulidotfiles::append_to_shell_files \
-    '[ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"'
-  nipsulidotfiles::append_to_shell_files \
-    '[ -s "/usr/local/opt/nvm/etc/bash_completion.d/nvm" ]
-    && . "/usr/local/opt/nvm/etc/bash_completion.d/nvm"'
+  asdf install python latest
+  brew install pipx
+  pipx ensurepath
+  brew install pdm
 }
 
 ######################################
@@ -414,20 +388,21 @@ nipsulidotfiles::install_node() {
 ####################################
 nipsulidotfiles::install_languages() {
   brew install asdf      # manage most languages
-  # remember config echo -e "\n. $(brew --prefix asdf)/libexec/asdf.sh" >> ${ZDOTDIR:-~}/.zshrc
-  # most likely can replace these with asdf plugins
+  # remember config
+  nipsulidotfiles::append_to_shell_files "$(brew --prefix asdf)/libexec/asdf.sh"
+  asdf install nodejs latest
   nipsulidotfiles::install_python
-  nipsulidotfiles::install_node
-  brew install deno
-  brew install cmake
+  # most likely can replace these with asdf plugins
+  # brew install deno
+  # brew install cmake
   # brew install mono
-  brew install go
-  brew install java
-  local flags=(
-    /usr/local/opt/openjdk/libexec/openjdk.jdk
-    /Library/Java/JavaVirtualMachines/openjdk.jdk
-  )
-  sudo ln -sfn "${flags[@]}"
+  # brew install go
+  # brew install java
+  # local flags=(
+  #   /usr/local/opt/openjdk/libexec/openjdk.jdk
+  #   /Library/Java/JavaVirtualMachines/openjdk.jdk
+  # )
+  # sudo ln -sfn "${flags[@]}"
   # brew install julia
   # brew install zig
   # brew install vlang
@@ -437,20 +412,26 @@ nipsulidotfiles::install_languages() {
 }
 
 #######################################
-# Install and configure Alacritty
+# Install and configure Alacritty and Wezterm
 # Alacritty is perhaps the best terminal emulator:
 # 1. it's light and fast
 # 2. you can configure it to basically disappear
+#
+# Now Wezterm is competing and winning. In addition of those two
+# it haz better font support
 #
 # Globals:
 #   None
 # Arguments:
 #   None
 ######################################
-nipsulidotfiles::install_alacrity() {
+nipsulidotfiles::install_terminalemulators() {
   brew install alacritty
   ln -sf "${PWD}/dotfiles/.alacritty.yml" ~/.alacritty.yml
+  brew install --cask wezterm
+  ln -sf "${PWD}/dotfiles/.wezterm.lua" ~/.wezterm.lua
 }
+
 
 #######################################
 # Install and configures vim
@@ -474,19 +455,25 @@ nipsulidotfiles::install_vim() {
     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 
   ln -sf "${PWD}/dotfiles/.vimrc" ~/.vimrc
-  # make things work with neovim as well
-  mkdir -p ~/.config/nvim/
-  ln -sf "${PWD}/dotfiles/init.vim" ~/.config/nvim/init.vim
-
   vim +'PlugInstall --sync' +qa
 
   # Install YouCompleteMe
   # this one will require most of the stuff from
   # nipsulidotfiles::install_languages
   local curr_dir="${PWD}"
-  cd ~/.vim/plugged/YouCompleteMe/
-  python3 install.py --all
+  # cd ~/.vim/plugged/YouCompleteMe/
+  # python3 install.py --all
+
+  mkdir -p ~/.config/nvim/
+  # OLD CONF ln -sf "${PWD}/dotfiles/init.vim" ~/.config/nvim/init.vim
+  # Install CosmicNvim
+  # I'm in transition from vim to nvim
+  # Currently test driving CosmicNvim
+  cd ~/.config
+  git clone git@github.com:CosmicNvim/CosmicNvim.git nvim
   cd "${curr_dir}"
+  ln -sf "${PWD}/dotfiles/cosmic/*" ~/.config/nvim/lua/cosmic/config/
+  nvim --headless +qa
 }
 
 #######################################
@@ -509,13 +496,6 @@ nipsulidotfiles::install_tmux() {
   tmux new -s install_session \
     '~/.tmux/plugins/tpm/tpm && ~/.tmux/plugins/tpm/bindings/install_plugins'
 }
-nipsulidotfiles::install_zellij () {
-  cargo install cargo-binstall
-  cargo-binstall zellij
-  mkdir -p ~/.config/zellij
-  ln -sf "${PWD}/dotfiles/zellij_config.yaml" ~/.config/zellij/config.yaml
-
-}
 
 #######################################
 # Install terminal tools and does configuratiosn to make terminal life enjoyable
@@ -535,10 +515,9 @@ nipsulidotfiles::configure_terminal() {
   nipsulidotfiles::link_shell_profile
   nipsulidotfiles::configure_console_styles
   nipsulidotfiles::install_languages
-  nipsulidotfiles::install_alacrity
+  nipsulidotfiles::install_terminalemulators
   nipsulidotfiles::install_vim
   nipsulidotfiles::install_tmux
-  nipsulidotfiles::install_zellij
 }
 
 ######################################
@@ -645,7 +624,7 @@ nipsulidotfiles::install_productivity_apps() {
 #####################################
 nipsulidotfiles::install_messengers() {
   mas install 803453959         # Slack
-  mas install 747648890         # Telegram
+  # mas install 747648890         # Telegram
   brew install --cask discord   # For cool kids
 }
 
