@@ -396,7 +396,7 @@ nipsulidotfiles::install_languages() {
   brew install asdf      # manage most languages
   # remember config
   # shellcheck disable=SC2312
-  nipsulidotfiles::append_to_shell_files "$(brew --prefix asdf)/libexec/asdf.sh"
+  nipsulidotfiles::append_to_shell_files ". $(brew --prefix asdf)/libexec/asdf.sh"
   asdf plugin add nodejs || true
   asdf install nodejs latest
   nipsulidotfiles::install_python
