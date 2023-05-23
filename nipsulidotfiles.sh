@@ -394,17 +394,22 @@ nipsulidotfiles::install_python() {
 ####################################
 nipsulidotfiles::install_languages() {
   brew install asdf      # manage most languages
-  # remember config
   # shellcheck disable=SC2312
   nipsulidotfiles::append_to_shell_files ". $(brew --prefix asdf)/libexec/asdf.sh"
+
   asdf plugin add nodejs || true
   asdf install nodejs latest
+  asdf global nodejs latest
+
   nipsulidotfiles::install_python
+
+  asdf plugin-add golang https://github.com/kennyp/asdf-golang.git || true
+  asdf isntall golang latest
+  asdf global golang latest
   # most likely can replace these with asdf plugins
   # brew install deno
   # brew install cmake
   # brew install mono
-  # brew install go
   # brew install java
   # local flags=(
   #   /usr/local/opt/openjdk/libexec/openjdk.jdk
@@ -760,6 +765,7 @@ nipsulidotfiles::install_helper_scripts() {
   curl https://cht.sh/:cht.sh > ~/bin/cht.sh
   chmod +x ~/bin/cht.sh
   brew install rlwrap
+  brew install mutagen-io/mutagen/mutagen
 }
 
 main() {
