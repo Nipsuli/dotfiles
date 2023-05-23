@@ -638,6 +638,22 @@ nipsulidotfiles::install_messengers() {
 }
 
 ######################################
+# Install Firefox
+# Configures also the minimalistic theme
+# Globals:
+#   None
+# Arguments:
+#   None
+####################################
+nipsulidotfiles::install_firefox() {
+  brew install --cask firefox
+  mkdir -p ~/code
+  git clone git@github.com:andreasgrafen/cascade.git ~/code/cascade
+  mkdir -p "$(echo /Users/"${USER}"/Library/Application\ Support/Firefox/Profiles/*.default-*)"/chrome
+  ln -s ~/code/cascade/userChrome.css "$(echo ~/Library/Application\ Support/Firefox/Profiles/*.default-*)"/chrome/userChrome.css
+}
+
+######################################
 # Install browsers
 # * Vivaldi, my current favourite browser
 # * Chrome, to isolate work accounts to own browser
@@ -654,11 +670,7 @@ nipsulidotfiles::install_messengers() {
 nipsulidotfiles::install_browsers() {
   # brew install --cask vivaldi
   brew install --cask google-chrome
-  brew install --cask firefox
-  mkdir -p ~/code
-  git clone git@github.com:andreasgrafen/cascade.git ~/code/cascade
-  mkdir -p "$(echo /Users/"${USER}"/Library/Application\ Support/Firefox/Profiles/*.default-*)"/chrome
-  ln -s ~/code/cascade/userChrome.css "$(echo ~/Library/Application\ Support/Firefox/Profiles/*.default-*)"/chrome/userChrome.css
+  nipsulidotfiles::install_firefox
   # brew install --cask opera
   # brew install --cask opera-gx
   # brew install --cask qutebrowser
