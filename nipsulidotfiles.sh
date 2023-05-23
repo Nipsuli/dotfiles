@@ -89,8 +89,7 @@ nipsulidotfiles::append_to_shell_files() {
 #   None
 ######################################
 nipsulidotfiles::ensure_xcode_commandline_tools() {
-  if type xcode-select >&- && xpath=$( xcode-select --print-path ) &&
-    test -d "${xpath}" && test -x "${xpath}" ; then
+  if xcode-select -p ; then
     echo "xcode command line tools already installed!"
   else
     echo "Installing xcode command line tools"
@@ -114,6 +113,9 @@ nipsulidotfiles::install_homebrew() {
       https://brew.sh"
     # shellcheck disable=SC2312
     /bin/bash -c "$(curl -fsSL "${BREW_INSTALL_SCRIPT}")"
+    # shellcheck disable=SC2016
+    nipsulidotfiles::append_to_shell_files 'eval "$(/opt/homebrew/bing/brew shellenv)"'
+    eval "$(/pt/homebrew/bing/brew shellenv)"
   fi
 }
 
