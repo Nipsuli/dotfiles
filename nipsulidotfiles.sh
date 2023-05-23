@@ -373,6 +373,7 @@ nipsulidotfiles::configure_console_styles() {
 #   None
 ####################################
 nipsulidotfiles::install_python() {
+  asdf plugin add python
   asdf install python latest
   brew install pipx
   pipx ensurepath
@@ -396,6 +397,7 @@ nipsulidotfiles::install_languages() {
   # remember config
   # shellcheck disable=SC2312
   nipsulidotfiles::append_to_shell_files "$(brew --prefix asdf)/libexec/asdf.sh"
+  asdf plugin add nodejs
   asdf install nodejs latest
   nipsulidotfiles::install_python
   # most likely can replace these with asdf plugins
