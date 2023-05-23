@@ -543,7 +543,7 @@ nipsulidotfiles::configure_terminal() {
 ######################################
 nipsulidotfiles::install_internet_security_apps() {
   brew install --cask cloudflare-warp
-  brew install --cask private-internet-access
+  # brew install --cask private-internet-access
   mas install 1451685025                      # Wireguard
   mas install 926036361                       # LastPass
   # Note also https://github.com/lastpass/lastpass-cli/issues/604
@@ -652,7 +652,7 @@ nipsulidotfiles::install_messengers() {
 #   None
 ####################################
 nipsulidotfiles::install_browsers() {
-  brew install --cask vivaldi
+  # brew install --cask vivaldi
   brew install --cask google-chrome
   brew install --cask firefox
   mkdir -p ~/code
