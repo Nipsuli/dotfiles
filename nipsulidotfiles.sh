@@ -114,8 +114,8 @@ nipsulidotfiles::install_homebrew() {
     # shellcheck disable=SC2312
     /bin/bash -c "$(curl -fsSL "${BREW_INSTALL_SCRIPT}")"
     # shellcheck disable=SC2016
-    nipsulidotfiles::append_to_shell_files 'eval "$(/opt/homebrew/bing/brew shellenv)"'
-    eval "$(/pt/homebrew/bing/brew shellenv)"
+    nipsulidotfiles::append_to_shell_files 'eval "$(/opt/homebrew/bin/brew shellenv)"'
+    eval "$(/pt/homebrew/bin/brew shellenv)"
   fi
 }
 
