@@ -408,17 +408,22 @@ nipsulidotfiles::install_python() {
 ####################################
 nipsulidotfiles::install_languages() {
   brew install asdf      # manage most languages
-  # remember config
   # shellcheck disable=SC2312
-  nipsulidotfiles::append_to_shell_files "$(brew --prefix asdf)/libexec/asdf.sh"
+  nipsulidotfiles::append_to_shell_files ". $(brew --prefix asdf)/libexec/asdf.sh"
+
   asdf plugin add nodejs || true
   asdf install nodejs latest
+  asdf global nodejs latest
+
   nipsulidotfiles::install_python
+
+  asdf plugin-add golang https://github.com/kennyp/asdf-golang.git || true
+  asdf isntall golang latest
+  asdf global golang latest
   # most likely can replace these with asdf plugins
   # brew install deno
   # brew install cmake
   # brew install mono
-  # brew install go
   # brew install java
   # local flags=(
   #   /usr/local/opt/openjdk/libexec/openjdk.jdk
@@ -560,7 +565,7 @@ nipsulidotfiles::configure_terminal() {
 ######################################
 nipsulidotfiles::install_internet_security_apps() {
   brew install --cask cloudflare-warp
-  brew install --cask private-internet-access
+  # brew install --cask private-internet-access
   mas install 1451685025                      # Wireguard
   mas install 926036361                       # LastPass
   # Note also https://github.com/lastpass/lastpass-cli/issues/604
@@ -658,6 +663,22 @@ nipsulidotfiles::install_messengers() {
 }
 
 ######################################
+# Install Firefox
+# Configures also the minimalistic theme
+# Globals:
+#   None
+# Arguments:
+#   None
+####################################
+nipsulidotfiles::install_firefox() {
+  brew install --cask firefox
+  mkdir -p ~/code
+  git clone git@github.com:andreasgrafen/cascade.git ~/code/cascade
+  mkdir -p "$(echo /Users/"${USER}"/Library/Application\ Support/Firefox/Profiles/*.default-*)"/chrome
+  ln -s ~/code/cascade/userChrome.css "$(echo ~/Library/Application\ Support/Firefox/Profiles/*.default-*)"/chrome/userChrome.css
+}
+
+######################################
 # Install browsers
 # * Vivaldi, my current favourite browser
 # * Chrome, to isolate work accounts to own browser
@@ -673,13 +694,9 @@ nipsulidotfiles::install_messengers() {
 #   None
 ####################################
 nipsulidotfiles::install_browsers() {
-  brew install --cask vivaldi
+  # brew install --cask vivaldi
   brew install --cask google-chrome
-  brew install --cask firefox
-  mkdir -p ~/code
-  git clone git@github.com:andreasgrafen/cascade.git ~/code/cascade
-  mkdir -p "$(echo /Users/"${USER}"/Library/Application\ Support/Firefox/Profiles/*.default-*)"/chrome
-  ln -s ~/code/cascade/userChrome.css "$(echo ~/Library/Application\ Support/Firefox/Profiles/*.default-*)"/chrome/userChrome.css
+  nipsulidotfiles::install_firefox
   # brew install --cask opera
   # brew install --cask opera-gx
   # brew install --cask qutebrowser
@@ -771,6 +788,7 @@ nipsulidotfiles::install_helper_scripts() {
   curl https://cht.sh/:cht.sh > ~/bin/cht.sh
   chmod +x ~/bin/cht.sh
   brew install rlwrap
+  brew install mutagen-io/mutagen/mutagen
 }
 
 main() {
