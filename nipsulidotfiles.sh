@@ -15,6 +15,7 @@ readonly BREW_INSTALL_SCRIPT="https://raw.githubusercontent.com/Homebrew/install
 
 #######################################
 # Ensure EMAIL variable is set. Exits if not availble
+#
 # Globals:
 #   EMAIL
 # Arguments:
@@ -33,6 +34,7 @@ nipsulidotfiles::check_email_var() {
 # append to the file
 # Asks for sudo for write to allow writing to e.g. /etc/hosts
 # TODO(@Nipsuli) perhaps sudo should be split to own argument
+#
 # Globals:
 #   None
 # Arguments:
@@ -57,6 +59,7 @@ nipsulidotfiles::append_to_file() {
 #
 # In case the line needs a shell specific part there is %SHELL_NAME% macro
 # that is replaced with the shell name (bash|zsh)
+#
 # Globals:
 #   None
 # Arguments:
@@ -83,6 +86,7 @@ nipsulidotfiles::append_to_shell_files() {
 
 #######################################
 # Ensure xcode commandline tools are installed
+#
 # Globals:
 #   None
 # Arguments:
@@ -99,9 +103,11 @@ nipsulidotfiles::ensure_xcode_commandline_tools() {
 
 #######################################
 # Ensure homebrew is installed
+#
 # https://brew.sh
+#
 # Globals:
-#   None
+#   BREW_INSTALL_SCRIPT
 # Arguments:
 #   None
 ######################################
@@ -121,6 +127,7 @@ nipsulidotfiles::install_homebrew() {
 
 #######################################
 # Install command line client for App Store and ensure one is logged in
+#
 # Globals:
 #   None
 # Arguments:
@@ -146,6 +153,7 @@ nipsulidotfiles::install_appstore_cli() {
 # Installs packagemangers for mac:
 # * homebrew https://brew.sh
 # * command client for App Store: mas
+#
 # Globals:
 #   None
 # Arguments:
@@ -162,6 +170,7 @@ nipsulidotfiles::install_package_managers() {
 # * git with gpg signing
 # * GitHub client (gh)
 # * adds ssh key to GitHub
+#
 # Globals:
 #   EMAIL
 # Arguments:
@@ -202,6 +211,7 @@ nipsulidotfiles::setup_git() {
 # At least in US key layout this overwrites ø and å
 # This is personally preferred key mapping for those as I use US key layout but
 # need to write Finnish often. And alt + key is more convenient than ¨ + a/o
+#
 # Globals:
 #   None
 # Arguments:
@@ -234,6 +244,7 @@ EOF
 #
 # These settings are sane defaults IMO, read the function body for every setting
 # Most likely this is still missing some valuable settings
+#
 # Globals:
 #   None
 # Arguments:
@@ -275,8 +286,9 @@ nipsulidotfiles::configure_system_preferences() {
 #######################################
 # Set default exports to shell files
 # personally I like to have ${EMAIL} available
+#
 # Globals:
-#   None
+#   EMAIL
 # Arguments:
 #   None
 ######################################
@@ -297,6 +309,7 @@ nipsulidotfiles::setup_basic_env() {
 #
 # check for more possible goodies:
 # https://dev.to/_darrenburns/10-tools-to-power-up-your-command-line-4id4
+#
 # Globals:
 #   None
 # Arguments:
@@ -344,6 +357,7 @@ nipsulidotfiles::link_shell_profile() {
 #
 # Starship requires [nerdfonts](https://www.nerdfonts.com) so installing two of
 # my favourites: Hack and Fira-Code
+#
 # Globals:
 #   None
 # Arguments:
@@ -365,7 +379,7 @@ nipsulidotfiles::configure_console_styles() {
 # * pipx for running python apps
 # * pdm for package management
 #
-# TODO: figure out virtual env stuff
+# TODO(@Nipsuli) figure out virtual env stuff
 #
 # Globals:
 #   None
@@ -451,6 +465,7 @@ nipsulidotfiles::install_terminalemulators() {
 # Installs both vim and neovim
 # So far I haven't seen any benefits from neovim but keeping it here untill I've
 # evaluated it more
+#
 # Globals:
 #   None
 # Arguments:
@@ -490,6 +505,7 @@ nipsulidotfiles::install_vim() {
 # * tpm for plugin manager
 # * links .tmux.conf
 # * installs plugins
+#
 # Globals:
 #   None
 # Arguments:
@@ -536,6 +552,7 @@ nipsulidotfiles::configure_terminal() {
 # * wireguard, generic VPN client
 # * LastPass (including cli), Password manager
 # * Little Snitch, Network monitoring tool
+#
 # Globals:
 #   None
 # Arguments:
@@ -562,6 +579,7 @@ nipsulidotfiles::install_internet_security_apps() {
 #                 Find where the bottleneck is with Ping Plotter!
 #                 Visual ping + traceroute
 # * Disk Inventory X, find what eats all the disk space!
+#
 # Globals:
 #   None
 # Arguments:
@@ -602,6 +620,7 @@ nipsulidotfiles::install_xbar_plugins() {
 #             and basically made ToDo from that.
 # * Fantastical, best calendar. Period.
 # * Spark, email app, highly recommend this one!
+#
 # Globals:
 #   None
 # Arguments:
@@ -626,6 +645,7 @@ nipsulidotfiles::install_productivity_apps() {
 #
 # I've been trying to find good app to combine all the chats to one place but
 # everything seems like shit ʕノ•ᴥ•ʔノ ︵ ┻━┻
+#
 # Globals:
 #   None
 # Arguments:
@@ -646,6 +666,7 @@ nipsulidotfiles::install_messengers() {
 # * OperaGX, gamer needs a gaming browser
 # * qutebrowser, keyboard focused minimal browser, just because
 # I do like to compare different browsers. That's fun
+#
 # Globals:
 #   None
 # Arguments:
@@ -669,6 +690,7 @@ nipsulidotfiles::install_browsers() {
 # Installs VSCode and extensions
 # This does not contain all, VSCode is too sneaky to suggest installing from GUI
 # TODO(@Nipsuli) should ensure all good extensions are on this list
+#
 # Globals:
 #   None
 # Arguments:
@@ -690,8 +712,7 @@ nipsulidotfiles::install_vscode() {
 # Installs GUI text editors
 # * Sublime Text
 # * VSCode
-# One should use docker for all dev stuff and run nothing on local machine
-# Even though everything is containered in 202X one might need VM's
+#
 # Globals:
 #   None
 # Arguments:
@@ -713,6 +734,7 @@ nipsulidotfiles::install_gui_text_editors() {
 # Even though everything is containered in 202X one might need VM's.
 # [Direnv](https://direnv.net) allows you to scope environment variables to dir
 # so including it to this list.
+#
 # Globals:
 #   None
 # Arguments:
@@ -733,6 +755,7 @@ nipsulidotfiles::install_virtualizations() {
 # Links all the scripts from ./scripts and adds command line cheatsheet
 # https://github.com/chubin/cheat.sh
 # to ~/bin
+#
 # Globals:
 #   None
 # Arguments:
