@@ -117,6 +117,7 @@ local config = {
 
   -- Add additional plugins (lazy.nvim)
   add_plugins = {
+    { 'github/copilot.vim', lazy = false },
     { 'fabi1cazenave/termopen.vim', lazy = false },
     -- 'ggandor/lightspeed.nvim',
     -- {

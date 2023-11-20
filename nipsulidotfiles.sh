@@ -378,6 +378,7 @@ nipsulidotfiles::install_python() {
   brew install pipx
   pipx ensurepath
   brew install pdm
+  pipx install virtualenv
 }
 
 ######################################
@@ -487,6 +488,8 @@ nipsulidotfiles::install_vim() {
   git clone git@github.com:CosmicNvim/CosmicNvim.git nvim
   cd "${curr_dir}"
   ln -sf "${PWD}/dotfiles/cosmic/*" ~/.config/nvim/lua/cosmic/config/
+  brew install fsouza/prettierd/prettierd
+  npm install -g eslint_d
   nvim --headless +qa
 }
 
