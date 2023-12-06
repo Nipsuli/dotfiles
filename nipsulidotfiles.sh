@@ -396,6 +396,23 @@ nipsulidotfiles::install_python() {
 }
 
 ######################################
+# Install lisp
+#
+# Globals:
+#   None
+# Arguments:
+#   None
+####################################
+nipsulidotfiles::install_lisp() {
+  brew isntall sbcl
+  curl -O https://beta.quicklisp.org/quicklisp.lisp.asc
+  # do
+  # sbcl --load quicklisp.lisp
+  # (quicklisp-quickstart:install)
+  # (exit)
+}
+
+######################################
 # Installs some languages and friends
 # Even though one probably should run most of the stuff within containers having
 # the languages locally can help e.g. with different auto completes

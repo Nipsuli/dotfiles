@@ -380,7 +380,7 @@ Plug 'ycm-core/YouCompleteMe' " Remember to cd ~/.vim/plugged/YouCompleteMe/ && 
 "     \ 'do':  'make fsautocomplete',
 "     \ }
 "
-" for deno 
+" for deno
 Plug 'jayli/vim-easycomplete'
 Plug 'SirVer/ultisnips'
 
@@ -396,6 +396,7 @@ Plug 'jakwings/vim-pony'
 Plug 'ziglang/zig.vim'
 Plug 'evanleck/vim-svelte', {'branch': 'main'}
 Plug 'hashivim/vim-terraform'
+Plug 'kovisoft/slimv'
 call plug#end()
 
 """"""""""""""""
@@ -441,7 +442,7 @@ if has('nvim')
     autocmd TermOpen * startinsert
     tnoremap <C-o> <C-\><C-n>
 else
-    cabbrev bterm bo term 
+    cabbrev bterm bo term
     noremap <leader>ot :bo term<cr>
 endif
 
@@ -467,7 +468,7 @@ endtry
 let g:airline_theme='onedark'
 " Other airline goodies
 let g:airline#extensions#tabline#enabled = 1
-" could check which airline extensions are usefull and limit to minimum 
+" could check which airline extensions are usefull and limit to minimum
 
 " Manually setting omnifunc pop up colors this was needed when colors didn't work
 " double check this
