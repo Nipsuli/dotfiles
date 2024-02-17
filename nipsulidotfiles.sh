@@ -520,7 +520,8 @@ nipsulidotfiles::install_vim() {
   cd ~/.config
   git clone git@github.com:CosmicNvim/CosmicNvim.git nvim
   cd "${curr_dir}"
-  ln -sf "${PWD}/dotfiles/cosmic/*" ~/.config/nvim/lua/cosmic/config/
+  ln -sf "${PWD}/dotfiles/cosmic/config.lua" ~/.config/nvim/lua/cosmic/config/
+  ln -sf "${PWD}/dotfiles/cosmic/editor.lua" ~/.config/nvim/lua/cosmic/config/
   brew install fsouza/prettierd/prettierd
   npm install -g eslint_d
   nvim --headless +qa
