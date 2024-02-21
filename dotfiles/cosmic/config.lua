@@ -21,6 +21,7 @@ local config = {
     -- lsp servers that should be installed
     ensure_installed = {
       'rust_analyzer',
+      'denols',
     },
 
     -- lsp servers that should be enabled
@@ -29,9 +30,32 @@ local config = {
       tailwindcss = false,
       -- Enable rust_analyzer
       rust_analyzer = true,
-
+      denols = {
+        opts = {
+          single_file_support = false,
+          root_dir = function(filename, bufnr)
+            local lspconfig = require('lspconfig')
+            return lspconfig.util.root_pattern('deno.json', 'deno.jsonc')(filename)
+          end,
+        },
+      },
       -- Enable tsserver w/custom settings
-      tsserver = {},
+      tsserver = {
+        opts = {
+          single_file_support = false,
+          root_dir = function(filename, bufnr)
+            local lspconfig = require('lspconfig')
+            local denoRootDir = lspconfig.util.root_pattern('deno.json', 'deno.json')(filename)
+            if denoRootDir then
+              -- print('this seems to be a deno project; returning nil so that tsserver does not attach')
+              return nil
+              -- else
+              -- print('this seems to be a ts project; return root dir based on package.json')
+            end
+            return lspconfig.util.root_pattern('package.json')(filename)
+          end,
+        },
+      },
       -- See Cosmic defaults lsp/providers/null_ls.lua and https://github.com/jose-elias-alvarez/null-ls.nvim/
       -- If adding additional sources, be sure to also copy the defaults that you would like to preserve from lsp/providers/null_ls.lua
       null_ls = {
