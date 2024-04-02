@@ -543,7 +543,8 @@ nipsulidotfiles::install_vim() {
   # python3 install.py --all
   # cd "${curr_dir}"
 
-  brew install neovim
+  # CosmicNvim requires pre-release
+  brew install neovim --HEAD
   mkdir -p ~/.config/nvim/
   # OLD CONF ln -sf "${PWD}/dotfiles/init.vim" ~/.config/nvim/init.vim
   # Install CosmicNvim
