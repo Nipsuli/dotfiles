@@ -136,7 +136,6 @@ nipsulidotfiles::install_homebrew() {
 ######################################
 nipsulidotfiles::install_appstore_cli() {
   brew install mas                        # Commandline tool for App Store
-  # brew install mas-cli/tap/mas          # this is needed on older macs
 
   if mas account >&- ; then
       echo "You've logged in in app store"
@@ -326,11 +325,11 @@ nipsulidotfiles::install_commandline_tools() {
   brew install tty-clock
   brew install jq
   brew install htop
+  brew install btop
   brew install watch
   brew install coreutils findutils
   brew install gnu-tar gnu-sed gawk gnutls gnu-indent gnu-getopt
   brew install grep wget gzip
-  brew install btop
 }
 
 #######################################
@@ -388,12 +387,27 @@ nipsulidotfiles::configure_console_styles() {
 #   None
 ####################################
 nipsulidotfiles::install_python() {
-  asdf plugin add python || true
-  asdf install python latest
+  # should probs not use asdf, feels actually really slow
+  # so back to pyenv?
+  # asdf plugin add python || true
+  # asdf install python latest
+
+  brew install pyenv
+  nipsulidotfiles::append_to_shell_files 'export PYENV_ROOT="$HOME/.pyenv"'
+  nipsulidotfiles::append_to_shell_files '[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"'
+  nipsulidotfiles::append_to_shell_files 'eval "$(pyenv init -)"'
+
+  pyenv install 3.12
+  pyenv global 3.12
+
   brew install pipx
   pipx ensurepath
+
   brew install pdm
+  # Should probably prefer pdm over poetry
   pipx install virtualenv
+  pipx install poetry
+  brew install ruff
 }
 
 ######################################
@@ -414,6 +428,27 @@ nipsulidotfiles::install_lisp() {
 }
 
 ######################################
+# Install node
+#
+# Globals:
+#   None
+# Arguments:
+#   None
+####################################
+nipsulidotfiles::install_node() {
+  # asdf plugin add nodejs || true
+  # asdf install nodejs latest
+  # asdf global nodejs latest
+  # Going back to nvm
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+  nvm install 20
+  nvm alias default 20
+
+  brew install fsouza/prettierd/prettierd
+  npm install -g eslint_d
+}
+
+######################################
 # Installs some languages and friends
 # Even though one probably should run most of the stuff within containers having
 # the languages locally can help e.g. with different auto completes
@@ -426,36 +461,32 @@ nipsulidotfiles::install_lisp() {
 #   None
 ####################################
 nipsulidotfiles::install_languages() {
+  # should probs not use asdf, feels actually really slow
   brew install asdf      # manage most languages
   # shellcheck disable=SC2312
   nipsulidotfiles::append_to_shell_files ". $(brew --prefix asdf)/libexec/asdf.sh"
 
-  asdf plugin add nodejs || true
-  asdf install nodejs latest
-  asdf global nodejs latest
-
   nipsulidotfiles::install_python
+  nipsulidotfiles::install_node
 
-  asdf plugin-add golang https://github.com/kennyp/asdf-golang.git || true
-  asdf isntall golang latest
-  asdf global golang latest
-  # most likely can replace these with asdf plugins
-  # brew install deno
+  brew install go
+  brew install deno
   # brew install cmake
   # brew install mono
+  #
   # brew install java
   # local flags=(
   #   /usr/local/opt/openjdk/libexec/openjdk.jdk
   #   /Library/Java/JavaVirtualMachines/openjdk.jdk
   # )
   # sudo ln -sfn "${flags[@]}"
+  #
   # brew install julia
   # brew install zig
-  # brew install vlang
-  # brew install ponyc
   brew install shellcheck          # you will write shell scripts, at least check them
   # shellcheck disable=SC2312
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+  nipsulidotfiles::install_lisp
 }
 
 #######################################
@@ -497,7 +528,6 @@ nipsulidotfiles::install_terminalemulators() {
 ######################################
 nipsulidotfiles::install_vim() {
   brew install vim
-  brew install neovim
   # I prefer Plug as vim plugin manager
   curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
@@ -508,10 +538,12 @@ nipsulidotfiles::install_vim() {
   # Install YouCompleteMe
   # this one will require most of the stuff from
   # nipsulidotfiles::install_languages
-  local curr_dir="${PWD}"
+  # local curr_dir="${PWD}"
   # cd ~/.vim/plugged/YouCompleteMe/
   # python3 install.py --all
+  # cd "${curr_dir}"
 
+  brew install neovim
   mkdir -p ~/.config/nvim/
   # OLD CONF ln -sf "${PWD}/dotfiles/init.vim" ~/.config/nvim/init.vim
   # Install CosmicNvim
@@ -519,7 +551,6 @@ nipsulidotfiles::install_vim() {
   # Currently test driving CosmicNvim
   cd ~/.config
   git clone git@github.com:CosmicNvim/CosmicNvim.git nvim
-  cd "${curr_dir}"
   ln -sf "${PWD}/dotfiles/cosmic/config.lua" ~/.config/nvim/lua/cosmic/config/
   ln -sf "${PWD}/dotfiles/cosmic/editor.lua" ~/.config/nvim/lua/cosmic/config/
   brew install fsouza/prettierd/prettierd
@@ -760,6 +791,7 @@ nipsulidotfiles::install_vscode() {
 nipsulidotfiles::install_gui_text_editors() {
   brew install sublime-text
   nipsulidotfiles::install_vscode
+  brew install --cask zed
 }
 
 ######################################
