@@ -556,7 +556,11 @@ nipsulidotfiles::install_vim() {
   ln -sf "${PWD}/dotfiles/cosmic/editor.lua" ~/.config/nvim/lua/cosmic/config/
   brew install fsouza/prettierd/prettierd
   npm install -g eslint_d
+  # CosmicNvim installs all the stuff
   nvim --headless +qa
+  # trigger copilot install
+  nvim --headless +Copilot setup +q
+
 }
 
 #######################################
@@ -800,12 +804,15 @@ nipsulidotfiles::install_gui_text_editors() {
 # * docker
 # * virtualbox
 # * direnv
+# * tart
 # * dmg2img, helper to, well, convert dmg to "normal" disk image
 #
 # One should use docker for all dev stuff and run nothing on local machine.
 # Even though everything is containered in 202X one might need VM's.
 # [Direnv](https://direnv.net) allows you to scope environment variables to dir
 # so including it to this list.
+#
+# Tart is nice for OSX virtualization https://tart.run/quick-start/#
 #
 # Globals:
 #   None
@@ -820,6 +827,7 @@ nipsulidotfiles::install_virtualizations() {
   nipsulidotfiles::append_to_shell_files 'eval "$(direnv hook %SHELL_NAME%)"'
   brew install dmg2img
   brew install lima
+  brew install cirruslabs/cli/tart
 }
 
 ######################################
