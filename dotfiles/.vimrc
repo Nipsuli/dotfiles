@@ -366,9 +366,9 @@ Plug 'vim-airline/vim-airline'
 Plug 'junegunn/fzf', { 'do': './install --bin' }
 Plug 'junegunn/fzf.vim'
 " Plug 'tpope/vim-fugitive'
-Plug 'tpope/vim-surround'
-Plug 'tpope/vim-commentary'
-Plug 'ycm-core/YouCompleteMe' " Remember to cd ~/.vim/plugged/YouCompleteMe/ && python3 install.py --all
+" Plug 'tpope/vim-surround'
+" Plug 'tpope/vim-commentary'
+" Plug 'ycm-core/YouCompleteMe' " Remember to cd ~/.vim/plugged/YouCompleteMe/ && python3 install.py --all
 
 " Plug 'autozimu/LanguageClient-neovim', {
 "     \ 'branch': 'next',
@@ -381,22 +381,22 @@ Plug 'ycm-core/YouCompleteMe' " Remember to cd ~/.vim/plugged/YouCompleteMe/ && 
 "     \ }
 "
 " for deno
-Plug 'jayli/vim-easycomplete'
-Plug 'SirVer/ultisnips'
+" Plug 'jayli/vim-easycomplete'
+" Plug 'SirVer/ultisnips'
 
 " languages
-Plug 'google/vim-jsonnet'
-Plug 'pangloss/vim-javascript'
-Plug 'leafgarland/typescript-vim'
-Plug 'peitalin/vim-jsx-typescript'
-Plug 'styled-components/vim-styled-components', { 'branch': 'main' }
-Plug 'jparise/vim-graphql'
-Plug 'rust-lang/rust.vim'
-Plug 'jakwings/vim-pony'
-Plug 'ziglang/zig.vim'
-Plug 'evanleck/vim-svelte', {'branch': 'main'}
-Plug 'hashivim/vim-terraform'
-Plug 'kovisoft/slimv'
+" Plug 'google/vim-jsonnet'
+" Plug 'pangloss/vim-javascript'
+" Plug 'leafgarland/typescript-vim'
+" Plug 'peitalin/vim-jsx-typescript'
+" Plug 'styled-components/vim-styled-components', { 'branch': 'main' }
+" Plug 'jparise/vim-graphql'
+" Plug 'rust-lang/rust.vim'
+" Plug 'jakwings/vim-pony'
+" Plug 'ziglang/zig.vim'
+" Plug 'evanleck/vim-svelte', {'branch': 'main'}
+" Plug 'hashivim/vim-terraform'
+" Plug 'kovisoft/slimv'
 call plug#end()
 
 """"""""""""""""
