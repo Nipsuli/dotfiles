@@ -393,8 +393,11 @@ nipsulidotfiles::install_python() {
   # asdf install python latest
 
   brew install pyenv
+  # shellcheck disable=SC2016
   nipsulidotfiles::append_to_shell_files 'export PYENV_ROOT="$HOME/.pyenv"'
+  # shellcheck disable=SC2016
   nipsulidotfiles::append_to_shell_files '[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"'
+  # shellcheck disable=SC2016
   nipsulidotfiles::append_to_shell_files 'eval "$(pyenv init -)"'
 
   pyenv install 3.12
@@ -440,6 +443,7 @@ nipsulidotfiles::install_node() {
   # asdf install nodejs latest
   # asdf global nodejs latest
   # Going back to nvm
+  # shellcheck disable=SC2312
   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
   nvm install 20
   nvm alias default 20
