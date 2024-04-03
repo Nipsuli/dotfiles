@@ -42,11 +42,11 @@ alias mv='mv -iv'                           # Preferred 'mv' implementation
 alias mkdir='mkdir -pv'                     # Preferred 'mkdir' implementation
 # alias ll='ls -l'
 # alias la='ls -FGlAhp'                       # Preferred 'ls' implementation
-# @Nipsuli: use exa for ls stuff
-alias ll='exa -l'
-alias la='exa -la'
-lt() { exa -T -L "$1" -l; }
-# exa colours to match @Nipsuli vim and tmux onedark
+# @Nipsuli: use eza for ls stuff
+alias ll='eza -l'
+alias la='eza -la'
+lt() { eza -T -L "$1" -l; }
+# eza colours to match @Nipsuli vim and tmux onedark
 # export LS_COLORS="ex=38;5;114"
 # export EXA_COLORS="ux=38;5;114:ue=38;5;114:gx=38;5;114:tx=38;5;114:sn=38;5;114:sb=38;5;114:df=38;5;114:ds=38;5;114:ga=38;5;114"
 export LS_COLORS="ex=38;5;150"

@@ -271,6 +271,13 @@ nipsulidotfiles::configure_system_preferences() {
   defaults write NSGlobalDomain InitialKeyRepeat -int 15
   # Set a blazingly fast keyboard repeat rate:
   defaults write NSGlobalDomain KeyRepeat -int 2
+  # make caps to esc
+  defaults write com.apple.keyboard.modifiermapping.1452-834-0 '(
+    {
+      HIDKeyboardModifierMappingDst = 30064771113;
+      HIDKeyboardModifierMappingSrc = 30064771129;
+    }
+  )'
 
   # Hide dock to right so it won't take half of the screen
   defaults write com.apple.dock autohide -int 1
@@ -301,7 +308,7 @@ nipsulidotfiles::setup_basic_env() {
 # Install tools that make command line experience better
 #
 # Tools to be installed:
-# * exa, better looking ls
+# * eza, better looking ls (maintained fork of exa)
 # * bat, better looking cat
 # * fzf, rg and ag for search stuff
 # * tty-clock, u know, why not ⊂(◉‿◉)つ
@@ -316,7 +323,7 @@ nipsulidotfiles::setup_basic_env() {
 #   None
 ######################################
 nipsulidotfiles::install_commandline_tools() {
-  brew install exa
+  brew install eza
   brew install bat
   brew install fzf
   "$(brew --prefix)"/opt/fzf/install
