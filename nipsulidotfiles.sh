@@ -429,7 +429,7 @@ nipsulidotfiles::install_python() {
 #   None
 ####################################
 nipsulidotfiles::install_lisp() {
-  brew isntall sbcl
+  brew install sbcl
   curl -O https://beta.quicklisp.org/quicklisp.lisp.asc
   # do
   # sbcl --load quicklisp.lisp
