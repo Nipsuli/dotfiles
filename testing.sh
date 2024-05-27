@@ -17,3 +17,6 @@ brew install mcfly
 # better find
 brew install fd
 
+# decided to ditch asdf for managing langages
+# currently for node testing fnm
+curl -fsSL https://fnm.vercel.app/install | bash

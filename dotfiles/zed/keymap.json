@@ -3,8 +3,17 @@
   // need to overwrite some defaults to get bit better, but not possible yet
   // fully as there is no way to remap accepting copilot suggestions
   {
+    "context": "Editor && inline_completion && !showing_completions",
+    "bindings": {
+      "tab": "editor::Tab",
+      "ctrl-y": "editor::AcceptInlineCompletion"
+    }
+  },
+  {
     "context": "Editor && (showing_code_actions || showing_completions)",
     "bindings": {
+      "tab": "editor::Tab",
+      "enter": "editor::Newline",
       "ctrl-y": "editor::ConfirmCompletion"
     }
   },
