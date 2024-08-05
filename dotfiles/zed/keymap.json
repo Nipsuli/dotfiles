@@ -10,7 +10,7 @@
     }
   },
   {
-    "context": "Editor && (showing_code_actions || showing_completions)",
+    "context": "Editor && showing_completions",
     "bindings": {
       "tab": "editor::Tab",
       "enter": "editor::Newline",

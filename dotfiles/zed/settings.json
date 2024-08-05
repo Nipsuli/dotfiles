@@ -17,8 +17,8 @@
   // hide the scroll bar
   "scrollbar": { "show": "never" },
   // allow cursor to reach edges of screen
-  "vertical_scroll_margin": 0
-  // "tab_bar": {
-  //   "show": false
-  // }
+  "vertical_scroll_margin": 0,
+  "tab_bar": {
+    "show": false
+  }
 }
