@@ -754,7 +754,19 @@ nipsulidotfiles::install_firefox() {
   if [ -f "$userCrhomeFilename"] ; then
     rm "$userChromeFileName"
   fi
-  ln -s "/Users/${USER}/code/cascade/userChrome.css" ${userChromeFileName}
+  ln -s "/Users/${USER}/code/cascade/chrome/userChrome.css" ${userChromeFileName}
+
+  local includesBase="/Users/${USER}/code/cascade/chrome/includes"
+
+  for item in "${includesBase}"/*; do
+    if [ -f "$item" ]; then
+      targetFile="${ffbasedir}/chrome/includes/$(basename "$item")"
+      if [ -f "$targetFile" ] ; then
+        rm "$targetFile"
+      fi
+      ln -s "$item" "$targetFile"
+    fi
+  done
 }
 
 ######################################
