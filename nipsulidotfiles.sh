@@ -748,8 +748,13 @@ nipsulidotfiles::install_firefox() {
   brew install --cask firefox
   mkdir -p ~/code
   git clone git@github.com:andreasgrafen/cascade.git ~/code/cascade
-  mkdir -p "$(echo /Users/"${USER}"/Library/Application\ Support/Firefox/Profiles/*.default-*)"/chrome
-  ln -s ~/code/cascade/userChrome.css "$(echo ~/Library/Application\ Support/Firefox/Profiles/*.default-*)"/chrome/userChrome.css
+  local ffbasedir="$(echo /Users/"${USER}"/Library/Application\ Support/Firefox/Profiles/*.default-*)"
+  mkdir -p "${ffbasedir}/chrome"
+  local userChromeFileName="${ffbasedir}/chrome/userChrome.css"
+  if [ -f "$userCrhomeFilename"] ; then
+    rm "$userChromeFileName"
+  fi
+  ln -s "/Users/${USER}/code/cascade/userChrome.css" ${userChromeFileName}
 }
 
 ######################################
