@@ -745,11 +745,11 @@ nipsulidotfiles::install_messengers() {
 #   None
 ####################################
 nipsulidotfiles::install_firefox() {
-  brew install --cask firefox
-  mkdir -p ~/code
-  git clone git@github.com:andreasgrafen/cascade.git ~/code/cascade
+  # brew install --cask firefox
+  # mkdir -p ~/code
+  # git clone git@github.com:andreasgrafen/cascade.git ~/code/cascade
   local ffbasedir="$(echo /Users/"${USER}"/Library/Application\ Support/Firefox/Profiles/*.default-*)"
-  mkdir -p "${ffbasedir}/chrome"
+  mkdir -p "${ffbasedir}/chrome/includes"
   local userChromeFileName="${ffbasedir}/chrome/userChrome.css"
   if [ -f "$userCrhomeFilename"] ; then
     rm "$userChromeFileName"
@@ -883,3 +883,12 @@ main() {
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   main "$@"
 fi
+
+######################################
+# remind about manual installations
+####################################
+nipsulidotfiles::remind_manual_installations() {
+  echo "Remember check manually"
+  echo "  - yabai SIP https://github.com/koekeishiya/yabai/wiki/Disabling-System-Integrity-Protection"
+  echo "  - yabai SA https://github.com/koekeishiya/yabai/wiki/Installing-yabai-(latest-release)#configure-scripting-addition"
+}
