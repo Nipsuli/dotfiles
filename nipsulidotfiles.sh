@@ -748,8 +748,25 @@ nipsulidotfiles::install_firefox() {
   brew install --cask firefox
   mkdir -p ~/code
   git clone git@github.com:andreasgrafen/cascade.git ~/code/cascade
-  mkdir -p "$(echo /Users/"${USER}"/Library/Application\ Support/Firefox/Profiles/*.default-*)"/chrome
-  ln -s ~/code/cascade/userChrome.css "$(echo ~/Library/Application\ Support/Firefox/Profiles/*.default-*)"/chrome/userChrome.css
+  local ffbasedir="$(echo /Users/"${USER}"/Library/Application\ Support/Firefox/Profiles/*.default-*)"
+  mkdir -p "${ffbasedir}/chrome/includes"
+  local userChromeFileName="${ffbasedir}/chrome/userChrome.css"
+  if [ -f "$userCrhomeFilename"] ; then
+    rm "$userChromeFileName"
+  fi
+  ln -s "/Users/${USER}/code/cascade/chrome/userChrome.css" ${userChromeFileName}
+
+  local includesBase="/Users/${USER}/code/cascade/chrome/includes"
+
+  for item in "${includesBase}"/*; do
+    if [ -f "$item" ]; then
+      targetFile="${ffbasedir}/chrome/includes/$(basename "$item")"
+      if [ -f "$targetFile" ] ; then
+        rm "$targetFile"
+      fi
+      ln -s "$item" "$targetFile"
+    fi
+  done
 }
 
 ######################################
@@ -878,3 +895,12 @@ main() {
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   main "$@"
 fi
+
+######################################
+# remind about manual installations
+####################################
+nipsulidotfiles::remind_manual_installations() {
+  echo "Remember check manually"
+  echo "  - yabai SIP https://github.com/koekeishiya/yabai/wiki/Disabling-System-Integrity-Protection"
+  echo "  - yabai SA https://github.com/koekeishiya/yabai/wiki/Installing-yabai-(latest-release)#configure-scripting-addition"
+}
