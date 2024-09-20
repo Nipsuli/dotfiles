@@ -222,10 +222,10 @@ nipsulidotfiles::setup_keybindings() {
   touch ~/Library/KeyBindings/DefaultKeyBinding.dict
   cat > ~/Library/KeyBindings/DefaultKeyBinding.dict << EOF
 {
-    "~a" = (insertText:, "ä");
-    "~o" = (insertText:, "ö");
-    "~A" = (insertText:, "Ä");
-    "~O" = (insertText:, "Ö");
+    "~a" = "(insertText:, "ä")";
+    "~o" = "(insertText:, "ö")";
+    "~A" = "(insertText:, "Ä")";
+    "~O" = "(insertText:, "Ö")";
 }
 EOF
 }
