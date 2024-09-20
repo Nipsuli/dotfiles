@@ -12,6 +12,7 @@
       "tab_size": 2
     }
   },
+  "pane_split_direction_vertical": "right",
   "assistant": {
     "default_model": {
       "provider": "copilot_chat",
