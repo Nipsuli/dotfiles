@@ -788,10 +788,11 @@ nipsulidotfiles::install_browsers() {
   # brew install --cask vivaldi
   brew install --cask google-chrome
   nipsulidotfiles::install_firefox
+  brew install --cask zen-browser
   # brew install --cask opera
   # brew install --cask opera-gx
   # brew install --cask qutebrowser
-  mas install 1480933944             # Vimari plugin for Safari
+  # mas install 1480933944             # Vimari plugin for Safari
 }
 
 ######################################
