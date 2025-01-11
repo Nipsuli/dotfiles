@@ -678,6 +678,8 @@ nipsulidotfiles::install_utilities() {
   brew install --cask disk-inventory-x
   brew install --cask xbar      # Could probs replace iStat Menus with this
   brew install hstr             # command history searcher
+  # https://github.com/yorukot/superfile
+  bash -c "$(curl -sLo- https://superfile.netlify.app/install.sh)"
 }
 
 ######################################

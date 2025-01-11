@@ -36,5 +36,18 @@
   "vertical_scroll_margin": 0,
   "tab_bar": {
     "show": false
+  },
+  "format_on_save": "on",
+  "lsp": {
+    "rust-analyzer": {
+      "initialization_options": {
+        "checkOnSave": {
+          "command": "clippy"
+        }
+      },
+      "binary": {
+        "ignore_system_version": false
+      }
+    }
   }
 }
