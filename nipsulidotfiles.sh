@@ -160,9 +160,9 @@ nipsulidotfiles::install_appstore_cli() {
 #   None
 ######################################
 nipsulidotfiles::install_package_managers() {
+  nipsulidotfiles::install_appstore_cli
   nipsulidotfiles::ensure_xcode_commandline_tools
   nipsulidotfiles::install_homebrew
-  nipsulidotfiles::install_appstore_cli
 }
 
 #######################################
@@ -180,7 +180,7 @@ nipsulidotfiles::setup_git() {
   local keyid
   nipsulidotfiles::check_email_var
   git config --global user.email "${EMAIL}"
-  git config pull.rebase false
+  git config --global pull.rebase false
   ssh-keygen -t rsa -b 4096 -C "${EMAIL}" || true # allow not overwriting
   brew install gh
   gh auth login                   # This will also upload ssh key to GitHub
@@ -377,16 +377,11 @@ nipsulidotfiles::configure_console_styles() {
   brew tap homebrew/cask-fonts
   brew install --cask font-hack-nerd-font
   brew install --cask font-fira-code
-  # TODO(@Nipsuli) On VSCode set terminal font family to Hack Nerd Font Mono
-  # this should be automated as well
 }
 
 ######################################
 # Install python and friends
-# * pipx for running python apps
-# * pdm for package management
-#
-# TODO(@Nipsuli) figure out virtual env stuff
+# * uv as the new kid in the block
 #
 # Globals:
 #   None
@@ -394,30 +389,11 @@ nipsulidotfiles::configure_console_styles() {
 #   None
 ####################################
 nipsulidotfiles::install_python() {
-  # should probs not use asdf, feels actually really slow
-  # so back to pyenv?
-  # asdf plugin add python || true
-  # asdf install python latest
-
-  brew install pyenv
+  # uv is "A single tool to replace pip, pip-tools, pipx, poetry, pyenv, twine, virtualenv, and more."
+  brew install uv
   # shellcheck disable=SC2016
-  nipsulidotfiles::append_to_shell_files 'export PYENV_ROOT="$HOME/.pyenv"'
-  # shellcheck disable=SC2016
-  nipsulidotfiles::append_to_shell_files '[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"'
-  # shellcheck disable=SC2016
-  nipsulidotfiles::append_to_shell_files 'eval "$(pyenv init -)"'
-
-  pyenv install 3.12
-  pyenv global 3.12
-
-  brew install pipx
-  pipx ensurepath
-
-  brew install pdm
-  # Should probably prefer pdm over poetry
-  pipx install virtualenv
-  pipx install poetry
-  brew install ruff
+  nipsulidotfiles::append_to_shell_files 'eval "$(uv generate-shell-completion %SHELL_NAME%)"'
+  uv python install install 3.12
 }
 
 ######################################
@@ -431,6 +407,7 @@ nipsulidotfiles::install_python() {
 nipsulidotfiles::install_lisp() {
   brew install sbcl
   curl -O https://beta.quicklisp.org/quicklisp.lisp.asc
+  # figure out automation for
   # do
   # sbcl --load quicklisp.lisp
   # (quicklisp-quickstart:install)
@@ -439,6 +416,7 @@ nipsulidotfiles::install_lisp() {
 
 ######################################
 # Install node
+# use fnm as the fast node managoer
 #
 # Globals:
 #   None
@@ -446,20 +424,16 @@ nipsulidotfiles::install_lisp() {
 #   None
 ####################################
 nipsulidotfiles::install_node() {
-  # asdf plugin add nodejs || true
-  # asdf install nodejs latest
-  # asdf global nodejs latest
-  # Going back to nvm
-  # shellcheck disable=SC2312
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+  brew install fnm
+  # shellcheck disable=SC2016
+  nipsulidotfiles::append_to_shell_files 'eval "$(fnm env --use-on-cd --shell %SHELL_NAME%)"'
+  fnm completions --shell bash
+  fnm completions --shell zsh
 
-  export NVM_DIR="$HOME/.nvm"
-  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+  fnm install 23
+  fnm default 23
 
-  nvm install 20
-  nvm alias default 20
-
+  # needed for nvim stuff
   brew install fsouza/prettierd/prettierd
   npm install -g eslint_d
 }
@@ -469,19 +443,12 @@ nipsulidotfiles::install_node() {
 # Even though one probably should run most of the stuff within containers having
 # the languages locally can help e.g. with different auto completes
 #
-# ps. Deno is my favourite scripting environment
-#
 # Globals:
 #   None
 # Arguments:
 #   None
 ####################################
 nipsulidotfiles::install_languages() {
-  # should probs not use asdf, feels actually really slow
-  brew install asdf      # manage most languages
-  # shellcheck disable=SC2312
-  nipsulidotfiles::append_to_shell_files ". $(brew --prefix asdf)/libexec/asdf.sh"
-
   nipsulidotfiles::install_python
   nipsulidotfiles::install_node
 
@@ -506,13 +473,9 @@ nipsulidotfiles::install_languages() {
 }
 
 #######################################
-# Install and configure Alacritty and Wezterm
-# Alacritty is perhaps the best terminal emulator:
-# 1. it's light and fast
-# 2. you can configure it to basically disappear
-#
-# Now Wezterm is competing and winning. In addition of those two
-# it haz better font support
+# Install and configure Wezterm
+# Used to run Alacritty, but Wezterm ended up being better
+# No evaluating ghostty as an alternative
 #
 # Globals:
 #   None
@@ -520,22 +483,18 @@ nipsulidotfiles::install_languages() {
 #   None
 ######################################
 nipsulidotfiles::install_terminalemulators() {
-  brew install alacritty
-  ln -sf "${PWD}/dotfiles/.alacritty.yml" ~/.alacritty.yml
   brew install --cask wezterm
   ln -sf "${PWD}/dotfiles/.wezterm.lua" ~/.wezterm.lua
+  brew install --cask ghostty
+  mkdir -p ~/.config/ghostty
+  ln -sf "${PWD}/dotfiles/ghostty_config" ~/.config/ghostty/config
 }
 
 
 #######################################
 # Install and configures vim
-# * Plug as plugin manger
-# * links vimrc
-# * installs plugins
-# * installs YouCompleteMe for autocompletion
-# Installs both vim and neovim
-# So far I haven't seen any benefits from neovim but keeping it here untill I've
-# evaluated it more
+#
+# Classic vim still as backup even though neovim is way better for all the suff
 #
 # Globals:
 #   None
@@ -551,6 +510,8 @@ nipsulidotfiles::install_vim() {
   ln -sf "${PWD}/dotfiles/.vimrc" ~/.vimrc
   vim +'PlugInstall --sync' +qa
 
+  # This would take ages, and as vim is not anymore main editor, not doing it
+  # keeping it here as a reference
   # Install YouCompleteMe
   # this one will require most of the stuff from
   # nipsulidotfiles::install_languages
@@ -564,14 +525,11 @@ nipsulidotfiles::install_vim() {
   mkdir -p ~/.config/nvim/
   # OLD CONF ln -sf "${PWD}/dotfiles/init.vim" ~/.config/nvim/init.vim
   # Install CosmicNvim
-  # I'm in transition from vim to nvim
   # Currently test driving CosmicNvim
   cd ~/.config
   git clone git@github.com:CosmicNvim/CosmicNvim.git nvim
   ln -sf "${PWD}/dotfiles/cosmic/config.lua" ~/.config/nvim/lua/cosmic/config/
   ln -sf "${PWD}/dotfiles/cosmic/editor.lua" ~/.config/nvim/lua/cosmic/config/
-  brew install fsouza/prettierd/prettierd
-  npm install -g eslint_d
   # CosmicNvim installs all the stuff
   nvim --headless +qa
   # trigger copilot install
@@ -640,10 +598,6 @@ nipsulidotfiles::configure_terminal() {
 nipsulidotfiles::install_internet_security_apps() {
   brew install --cask cloudflare-warp
   # brew install --cask private-internet-access
-  mas install 1451685025                      # Wireguard
-  mas install 926036361                       # LastPass
-  # Note also https://github.com/lastpass/lastpass-cli/issues/604
-  brew install lastpass-cli
   brew install --cask little-snitch
 }
 
@@ -667,16 +621,13 @@ nipsulidotfiles::install_internet_security_apps() {
 nipsulidotfiles::install_utilities() {
   brew install --cask spotify
   brew install ncspot           # Commandline spotify for the true ppl
-  brew install --cask rectangle # NOTE: could try https://emmetapp.com
-  mas install 688211836         # EasyRes
-  # mas purchase 1319778037     # iStat Menus,
-                                # I've used the brew version and manual licence
-                                # You probably should use the mas version
+  # brew install --cask rectangle # NOTE: could try https://emmetapp.com
   brew install --cask istat-menus
-  mas install 414568915         # Key Codes
   brew install --cask pingplotter
   brew install --cask disk-inventory-x
-  brew install --cask xbar      # Could probs replace iStat Menus with this
+  brew install --cask raycast
+  brew install --cask idrive
+  # brew install --cask xbar      # Could probs replace iStat Menus with this
   brew install hstr             # command history searcher
   # https://github.com/yorukot/superfile
   bash -c "$(curl -sLo- https://superfile.netlify.app/install.sh)"
@@ -689,10 +640,10 @@ nipsulidotfiles::install_utilities() {
 # Arguments:
 #   None
 #####################################
-nipsulidotfiles::install_xbar_plugins() {
-  curl https://raw.githubusercontent.com/unixorn/lima-xbar-plugin/main/lima-plugin --output ~/Library/Application\ Support/xbar/plugins/lima-plugin.30s
-  chmod +x ~/Library/Application\ Support/xbar/plugins/lima-plugin.30s
-}
+# nipsulidotfiles::install_xbar_plugins() {
+#   curl https://raw.githubusercontent.com/unixorn/lima-xbar-plugin/main/lima-plugin --output ~/Library/Application\ Support/xbar/plugins/lima-plugin.30s
+#   chmod +x ~/Library/Application\ Support/xbar/plugins/lima-plugin.30s
+# }
 
 ######################################
 # Install productivity apps
@@ -708,14 +659,14 @@ nipsulidotfiles::install_xbar_plugins() {
 #   None
 #####################################
 nipsulidotfiles::install_productivity_apps() {
-  brew install --cask obsidian
-  mas install 1274495053
+  # brew install --cask obsidian
+  # mas install 1274495053
   # mas install 975937182       # Fantastical,
                                 # I've used the brew version and manual licence
                                 # You probably should use the mas version
-  brew install --cask fantastical
+  # brew install --cask fantastical
   mas install 1176895641        # Spark
-  brew install --cask shottr    # Screenshot app
+  # brew install --cask shottr    # Screenshot app
 }
 
 ######################################
@@ -787,10 +738,10 @@ nipsulidotfiles::install_firefox() {
 #   None
 ####################################
 nipsulidotfiles::install_browsers() {
-  # brew install --cask vivaldi
+  brew install --cask vivaldi
   brew install --cask google-chrome
-  nipsulidotfiles::install_firefox
   brew install --cask zen-browser
+  # nipsulidotfiles::install_firefox
   # brew install --cask opera
   # brew install --cask opera-gx
   # brew install --cask qutebrowser
@@ -831,8 +782,8 @@ nipsulidotfiles::install_vscode() {
 ####################################
 nipsulidotfiles::install_gui_text_editors() {
   brew install sublime-text
-  nipsulidotfiles::install_vscode
-  brew install --cask zed
+  # nipsulidotfiles::install_vscode
+  brew install --cask zed@preview
 }
 
 ######################################
@@ -840,6 +791,7 @@ nipsulidotfiles::install_gui_text_editors() {
 # * docker
 # * virtualbox
 # * direnv
+# * lima and colima
 # * tart
 # * dmg2img, helper to, well, convert dmg to "normal" disk image
 #
@@ -863,6 +815,7 @@ nipsulidotfiles::install_virtualizations() {
   nipsulidotfiles::append_to_shell_files 'eval "$(direnv hook %SHELL_NAME%)"'
   brew install dmg2img
   brew install lima
+  brew install colima
   brew install cirruslabs/cli/tart
 }
 
@@ -881,8 +834,6 @@ nipsulidotfiles::install_helper_scripts() {
   mkdir -p ~/bin
   ln -sf "${PWD}/scripts/mtwrfsu" ~/bin/mtwrfsu
   ln -sf "${PWD}/scripts/git-clean" ~/bin/git-clean
-  # lpass cli is not enough, this fixes the missing parts
-  ln -sf "${PWD}/scripts/lpass-copy" ~/bin/lpass-copy
   # command line cheat sheet
   curl https://cht.sh/:cht.sh > ~/bin/cht.sh
   chmod +x ~/bin/cht.sh
@@ -904,6 +855,9 @@ fi
 ####################################
 nipsulidotfiles::remind_manual_installations() {
   echo "Remember check manually"
-  echo "  - yabai SIP https://github.com/koekeishiya/yabai/wiki/Disabling-System-Integrity-Protection"
-  echo "  - yabai SA https://github.com/koekeishiya/yabai/wiki/Installing-yabai-(latest-release)#configure-scripting-addition"
+  # from lisp installation, could think if can be automated
+  echo "# do\n# sbcl --load quicklisp.lisp\n# (quicklisp-quickstart:install)\n# (exit)"
+  # ditching yabai
+  # echo "  - yabai SIP https://github.com/koekeishiya/yabai/wiki/Disabling-System-Integrity-Protection"
+  # echo "  - yabai SA https://github.com/koekeishiya/yabai/wiki/Installing-yabai-(latest-release)#configure-scripting-addition"
 }
