@@ -3,10 +3,16 @@
   // need to overwrite some defaults to get bit better, but not possible yet
   // fully as there is no way to remap accepting copilot suggestions
   {
-    "context": "Editor && inline_completion && !showing_completions",
+    "context": "Editor",
+    "bindings": {
+      "tab": "editor::Tab"
+    }
+  },
+  {
+    "context": "Editor && edit_prediction && !showing_completions",
     "bindings": {
       "tab": "editor::Tab",
-      "ctrl-y": "editor::AcceptInlineCompletion"
+      "ctrl-y": "editor::AcceptEditPrediction"
     }
   },
   {
@@ -21,10 +27,10 @@
   {
     "context": "Dock",
     "bindings": {
-      "ctrl-w h": ["workspace::ActivatePaneInDirection", "Left"],
-      "ctrl-w l": ["workspace::ActivatePaneInDirection", "Right"],
-      "ctrl-w k": ["workspace::ActivatePaneInDirection", "Up"],
-      "ctrl-w j": ["workspace::ActivatePaneInDirection", "Down"]
+      "ctrl-w h": "workspace::ActivatePaneLeft",
+      "ctrl-w l": "workspace::ActivatePaneRight",
+      "ctrl-w k": "workspace::ActivatePaneUp",
+      "ctrl-w j": "workspace::ActivatePaneDown"
       // ... or other keybindings
     }
   },
