@@ -66,6 +66,9 @@
     "SQL": {
       "tab_size": 2
     }
+    // "TypeScript": {
+    //   "language_servers": ["tsgo"]
+    // }
   },
   "pane_split_direction_vertical": "right",
   "base_keymap": "VSCode",
