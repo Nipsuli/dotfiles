@@ -52,7 +52,6 @@
   },
   "features": {
     "edit_prediction_provider": "zed"
-    // "edit_prediction_provider": "supermaven"
   },
   "agent": {
     "always_allow_tool_actions": true,
@@ -60,16 +59,34 @@
       "provider": "zed.dev",
       "model": "claude-sonnet-4"
     },
-    "version": "2"
+    "model_parameters": []
   },
   "languages": {
     "SQL": {
       "tab_size": 2
+    },
+    "Markdown": {
+      "formatter": {
+        "external": {
+          "command": "prettier",
+          "arguments": [
+            "--prose-wrap",
+            "always",
+            "--stdin-filepath",
+            "{buffer_path}"
+          ]
+        }
+      },
+      "format_on_save": "on"
+    },
+    "Java": {
+      "format_on_save": "off"
     }
     // "TypeScript": {
     //   "language_servers": ["tsgo"]
     // }
   },
+  "use_system_window_tabs": true,
   "pane_split_direction_vertical": "right",
   "base_keymap": "VSCode",
   "theme": "One Dark",
@@ -77,16 +94,21 @@
   "ui_font_size": 14,
   "buffer_font_size": 15,
   // vim related
-  "relative_line_numbers": true,
+  "relative_line_numbers": "enabled",
   // hide the scroll bar
   "scrollbar": { "show": "never" },
-  // allow cursor to reach edges of screen
-  "vertical_scroll_margin": 0,
+  // don't allow cursor to reach edges of screen
+  "vertical_scroll_margin": 20,
   "tab_bar": {
     "show": false
   },
   "format_on_save": "on",
   "lsp": {
+    "jdtls": {
+      "settings": {
+        "lombok_support": true
+      }
+    },
     "rust-analyzer": {
       "initialization_options": {
         // "diagnostics": {
@@ -96,14 +118,14 @@
         // },
         "checkOnSave": true,
         "cargo": {
-          "allTargets": false,
-          "buildScripts": {
-            // "rebuildOnSave": false,
-            "useRustcWrapper": false
-          },
-          "extraEnv": {
-            "RUSTC_WRAPPER": "/opt/homebrew/bin/sccache"
-          }
+          "allTargets": false
+          // "buildScripts": {
+          //   // "rebuildOnSave": false,
+          //   "useRustcWrapper": false
+          // },
+          // "extraEnv": {
+          //   "RUSTC_WRAPPER": "/opt/homebrew/bin/sccache"
+          // }
         }
         // "check": {
         //   "overrideCommand": [

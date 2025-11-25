@@ -1,13 +1,16 @@
 [
+  // Multi window workspace management
+  {
+    "context": "Editor || Terminal || Workspace",
+    "bindings": {
+      "tab": "editor::Tab",
+      "cmd-]": "window::ShowNextWindowTab",
+      "cmd-[": "window::ShowPreviousWindowTab"
+    }
+  },
   // improving completion
   // need to overwrite some defaults to get bit better, but not possible yet
   // fully as there is no way to remap accepting copilot suggestions
-  {
-    "context": "Editor",
-    "bindings": {
-      "tab": "editor::Tab"
-    }
-  },
   {
     "context": "Editor && edit_prediction && !showing_completions",
     "bindings": {
@@ -21,6 +24,14 @@
       "tab": "editor::Tab",
       "enter": "editor::Newline",
       "ctrl-y": "editor::ConfirmCompletion"
+    }
+  },
+  {
+    "context": "Editor && showing_code_actions",
+    "bindings": {
+      "tab": "editor::Tab",
+      "enter": "editor::Newline",
+      "ctrl-y": "editor::ConfirmCodeAction"
     }
   },
   // pane navigation
