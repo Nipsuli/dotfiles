@@ -239,7 +239,7 @@ EOF
 # Simplest way to find correct setting:
 # 1. defaults read > before
 # 2. toggle the setting in UI
-# 3. defaults read > before
+# 3. defaults read > after
 # 4. diff files
 #
 # These settings are sane defaults IMO, read the function body for every setting
@@ -393,7 +393,7 @@ nipsulidotfiles::install_python() {
   brew install uv
   # shellcheck disable=SC2016
   nipsulidotfiles::append_to_shell_files 'eval "$(uv generate-shell-completion %SHELL_NAME%)"'
-  uv python install install 3.12
+  uv python install install 3.14
 }
 
 ######################################
@@ -430,8 +430,8 @@ nipsulidotfiles::install_node() {
   fnm completions --shell bash
   fnm completions --shell zsh
 
-  fnm install 23
-  fnm default 23
+  fnm install 24
+  fnm default 24
 
   # needed for nvim stuff
   brew install fsouza/prettierd/prettierd
@@ -451,9 +451,10 @@ nipsulidotfiles::install_node() {
 nipsulidotfiles::install_languages() {
   nipsulidotfiles::install_python
   nipsulidotfiles::install_node
+  brew install oven-sh/bun/bun
 
   brew install go
-  brew install deno
+  # brew install deno
   # brew install cmake
   # brew install mono
   #
@@ -533,8 +534,7 @@ nipsulidotfiles::install_vim() {
   # CosmicNvim installs all the stuff
   nvim --headless +qa
   # trigger copilot install
-  nvim --headless +Copilot setup +q
-
+  # nvim --headless +Copilot setup +q
 }
 
 #######################################
@@ -659,7 +659,7 @@ nipsulidotfiles::install_utilities() {
 #   None
 #####################################
 nipsulidotfiles::install_productivity_apps() {
-  # brew install --cask obsidian
+  brew install --cask obsidian
   # mas install 1274495053
   # mas install 975937182       # Fantastical,
                                 # I've used the brew version and manual licence
@@ -691,7 +691,7 @@ nipsulidotfiles::install_messengers() {
 
 ######################################
 # Install Firefox
-# Configures also the minimalistic theme
+# Configures also the minimalistic theme (skipping now)
 # Globals:
 #   None
 # Arguments:
@@ -699,37 +699,37 @@ nipsulidotfiles::install_messengers() {
 ####################################
 nipsulidotfiles::install_firefox() {
   brew install --cask firefox
-  mkdir -p ~/code
-  git clone git@github.com:andreasgrafen/cascade.git ~/code/cascade
-  local ffbasedir="$(echo /Users/"${USER}"/Library/Application\ Support/Firefox/Profiles/*.default-*)"
-  mkdir -p "${ffbasedir}/chrome/includes"
-  local userChromeFileName="${ffbasedir}/chrome/userChrome.css"
-  if [ -f "$userCrhomeFilename"] ; then
-    rm "$userChromeFileName"
-  fi
-  ln -s "/Users/${USER}/code/cascade/chrome/userChrome.css" ${userChromeFileName}
+  # mkdir -p ~/code
+  # git clone git@github.com:andreasgrafen/cascade.git ~/code/cascade
+  # local ffbasedir="$(echo /Users/"${USER}"/Library/Application\ Support/Firefox/Profiles/*.default-*)"
+  # mkdir -p "${ffbasedir}/chrome/includes"
+  # local userChromeFileName="${ffbasedir}/chrome/userChrome.css"
+  # if [ -f "$userCrhomeFilename"] ; then
+  #   rm "$userChromeFileName"
+  # fi
+  # ln -s "/Users/${USER}/code/cascade/chrome/userChrome.css" ${userChromeFileName}
 
-  local includesBase="/Users/${USER}/code/cascade/chrome/includes"
+  # local includesBase="/Users/${USER}/code/cascade/chrome/includes"
 
-  for item in "${includesBase}"/*; do
-    if [ -f "$item" ]; then
-      targetFile="${ffbasedir}/chrome/includes/$(basename "$item")"
-      if [ -f "$targetFile" ] ; then
-        rm "$targetFile"
-      fi
-      ln -s "$item" "$targetFile"
-    fi
-  done
+  # for item in "${includesBase}"/*; do
+  #   if [ -f "$item" ]; then
+  #     targetFile="${ffbasedir}/chrome/includes/$(basename "$item")"
+  #     if [ -f "$targetFile" ] ; then
+  #       rm "$targetFile"
+  #     fi
+  #     ln -s "$item" "$targetFile"
+  #   fi
+  # done
 }
 
 ######################################
 # Install browsers
-# * Vivaldi, my current favourite browser
+# * Vivaldi, not main anymore
 # * Chrome, to isolate work accounts to own browser
 # * Firefox, I feel this browser isn't getting enought love from users
+# * Zen, trying as new main
+# * Helium, testing this new chrome one
 # * Opera, what's a computer without Opera, perhaps my first browser crush
-# * OperaGX, gamer needs a gaming browser
-# * qutebrowser, keyboard focused minimal browser, just because
 # I do like to compare different browsers. That's fun
 #
 # Globals:
@@ -738,13 +738,12 @@ nipsulidotfiles::install_firefox() {
 #   None
 ####################################
 nipsulidotfiles::install_browsers() {
-  brew install --cask vivaldi
+  # brew install --cask vivaldi
   brew install --cask google-chrome
   brew install --cask zen-browser
-  # nipsulidotfiles::install_firefox
+  nipsulidotfiles::install_firefox
+  brew install --cask helium-browser
   # brew install --cask opera
-  # brew install --cask opera-gx
-  # brew install --cask qutebrowser
   # mas install 1480933944             # Vimari plugin for Safari
 }
 
@@ -764,7 +763,7 @@ nipsulidotfiles::install_vscode() {
   nipsulidotfiles::append_to_shell_files \
     'export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/
     Resources/app/bin"'
-  code --install-extension iocave.customize-ui     # get rid of title bar
+  # code --install-extension iocave.customize-ui     # get rid of title bar
   code --install-extension VSCodeVim.Vim           # who doesn't want vim?
   code --install-extension bmalehorn.shell-syntax  # Yup yup, shell syntax
   code --install-extension timonwong.shellcheck    # + checking
@@ -774,6 +773,7 @@ nipsulidotfiles::install_vscode() {
 # Installs GUI text editors
 # * Sublime Text
 # * VSCode
+# * Zed as my main editor
 #
 # Globals:
 #   None
@@ -783,7 +783,7 @@ nipsulidotfiles::install_vscode() {
 nipsulidotfiles::install_gui_text_editors() {
   brew install sublime-text
   # nipsulidotfiles::install_vscode
-  brew install --cask zed@preview
+  brew install --cask zed
 }
 
 ######################################
@@ -857,7 +857,4 @@ nipsulidotfiles::remind_manual_installations() {
   echo "Remember check manually"
   # from lisp installation, could think if can be automated
   echo "# do\n# sbcl --load quicklisp.lisp\n# (quicklisp-quickstart:install)\n# (exit)"
-  # ditching yabai
-  # echo "  - yabai SIP https://github.com/koekeishiya/yabai/wiki/Disabling-System-Integrity-Protection"
-  # echo "  - yabai SA https://github.com/koekeishiya/yabai/wiki/Installing-yabai-(latest-release)#configure-scripting-addition"
 }
