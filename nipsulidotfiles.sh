@@ -13,6 +13,71 @@ readonly BREW_INSTALL_SCRIPT="https://raw.githubusercontent.com/Homebrew/install
 # BEGIN GENERIC HELPERS
 #######################################
 
+# Color codes for logging
+readonly COLOR_RESET='\033[0m'
+readonly COLOR_GREEN='\033[0;32m'
+readonly COLOR_BLUE='\033[0;34m'
+readonly COLOR_YELLOW='\033[0;33m'
+readonly COLOR_RED='\033[0;31m'
+readonly COLOR_CYAN='\033[0;36m'
+
+#######################################
+# Log an info message in blue
+#######################################
+nipsulidotfiles::log_info() {
+  echo -e "${COLOR_BLUE}[INFO]${COLOR_RESET} $1"
+}
+
+#######################################
+# Log a success message in green
+#######################################
+nipsulidotfiles::log_success() {
+  echo -e "${COLOR_GREEN}[SUCCESS]${COLOR_RESET} $1"
+}
+
+#######################################
+# Log a warning message in yellow
+#######################################
+nipsulidotfiles::log_warn() {
+  echo -e "${COLOR_YELLOW}[WARN]${COLOR_RESET} $1"
+}
+
+#######################################
+# Log an error message in red
+#######################################
+nipsulidotfiles::log_error() {
+  echo -e "${COLOR_RED}[ERROR]${COLOR_RESET} $1"
+}
+
+#######################################
+# Log a section header in cyan
+#######################################
+nipsulidotfiles::log_section() {
+  echo -e "\n${COLOR_CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${COLOR_RESET}"
+  echo -e "${COLOR_CYAN}▶ $1${COLOR_RESET}"
+  echo -e "${COLOR_CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${COLOR_RESET}\n"
+}
+
+#######################################
+# Clone a git repo only if target directory doesn't exist
+# Idempotent: safe to call multiple times
+#
+# Arguments:
+#   repo_url - the git repository URL
+#   target_dir - the directory to clone into
+#######################################
+nipsulidotfiles::git_clone_if_missing() {
+  local repo_url="$1"
+  local target_dir="$2"
+  if [[ -d "${target_dir}" ]]; then
+    nipsulidotfiles::log_warn "Directory ${target_dir} already exists, skipping clone"
+  else
+    nipsulidotfiles::log_info "Cloning ${repo_url} to ${target_dir}"
+    git clone "${repo_url}" "${target_dir}"
+    nipsulidotfiles::log_success "Cloned successfully"
+  fi
+}
+
 #######################################
 # Ensure EMAIL variable is set. Exits if not availble
 #
@@ -93,11 +158,13 @@ nipsulidotfiles::append_to_shell_files() {
 #   None
 ######################################
 nipsulidotfiles::ensure_xcode_commandline_tools() {
-  if xcode-select -p ; then
-    echo "xcode command line tools already installed!"
+  nipsulidotfiles::log_info "Checking Xcode command line tools..."
+  if xcode-select -p >/dev/null 2>&1; then
+    nipsulidotfiles::log_success "Xcode command line tools already installed"
   else
-    echo "Installing xcode command line tools"
+    nipsulidotfiles::log_info "Installing Xcode command line tools"
     xcode-select --install
+    nipsulidotfiles::log_success "Xcode command line tools installed"
   fi
 }
 
@@ -112,17 +179,18 @@ nipsulidotfiles::ensure_xcode_commandline_tools() {
 #   None
 ######################################
 nipsulidotfiles::install_homebrew() {
+  nipsulidotfiles::log_info "Checking Homebrew..."
   if type brew >&- ; then
-    echo "brew already installed"
+    nipsulidotfiles::log_success "Homebrew already installed"
   else
-    echo "Installing homebrew, this might take time, read more from
-      https://brew.sh"
+    nipsulidotfiles::log_info "Installing Homebrew (this might take time)..."
     # shellcheck disable=SC2312
     /bin/bash -c "$(curl -fsSL "${BREW_INSTALL_SCRIPT}")"
     # shellcheck disable=SC2016
     nipsulidotfiles::append_to_shell_files 'eval "$(/opt/homebrew/bin/brew shellenv)"'
     evalcommand="$(/opt/homebrew/bin/brew shellenv)"
     eval "${evalcommand}"
+    nipsulidotfiles::log_success "Homebrew installed"
   fi
 }
 
@@ -135,18 +203,15 @@ nipsulidotfiles::install_homebrew() {
 #   None
 ######################################
 nipsulidotfiles::install_appstore_cli() {
+  nipsulidotfiles::log_info "Installing App Store CLI (mas)..."
   brew install mas                        # Commandline tool for App Store
+  nipsulidotfiles::log_success "mas installed"
 
-  if mas account >&- ; then
-      echo "You've logged in in app store"
-  else
-    read -n 1 -s -r -p "Need to login to AppStore manually, press any key to
-      open App Store."
-    echo
-    open -a App\ Store
-    read -n 1 -s -r -p "Press any key to continue."
-    echo
-  fi
+  read -n 1 -s -r -p "Need to login to AppStore manually, press any key to open App Store."
+  echo
+  open -a App\ Store
+  read -n 1 -s -r -p "Press any key to continue."
+  echo
 }
 
 #######################################
@@ -160,9 +225,11 @@ nipsulidotfiles::install_appstore_cli() {
 #   None
 ######################################
 nipsulidotfiles::install_package_managers() {
-  nipsulidotfiles::install_appstore_cli
+  nipsulidotfiles::log_section "Installing Package Managers"
   nipsulidotfiles::ensure_xcode_commandline_tools
   nipsulidotfiles::install_homebrew
+  nipsulidotfiles::install_appstore_cli
+  nipsulidotfiles::log_success "Package managers setup complete"
 }
 
 #######################################
@@ -177,11 +244,13 @@ nipsulidotfiles::install_package_managers() {
 #   None
 ######################################
 nipsulidotfiles::setup_git() {
+  nipsulidotfiles::log_section "Setting up Git & GitHub"
   local keyid
   nipsulidotfiles::check_email_var
+  nipsulidotfiles::log_info "Configuring git with email: ${EMAIL}"
   git config --global user.email "${EMAIL}"
   git config --global pull.rebase false
-  ssh-keygen -t rsa -b 4096 -C "${EMAIL}" || true # allow not overwriting
+  ssh-keygen -t ed25519 -C "${EMAIL}" || true # allow not overwriting
   brew install gh
   gh auth login                   # This will also upload ssh key to GitHub
   brew install --cask gpg-suite
@@ -204,6 +273,7 @@ nipsulidotfiles::setup_git() {
   echo
   git config --global user.signingkey "${keyid}"
   git config --global commit.gpgsign true
+  nipsulidotfiles::log_success "Git & GitHub setup complete"
 }
 
 #######################################
@@ -218,6 +288,8 @@ nipsulidotfiles::setup_git() {
 #   None
 ######################################
 nipsulidotfiles::setup_keybindings() {
+  nipsulidotfiles::log_section "Setting up Keybindings"
+  nipsulidotfiles::log_info "Configuring Finnish character shortcuts (alt+a/o → ä/ö)"
   mkdir -p ~/Library/KeyBindings/
   touch ~/Library/KeyBindings/DefaultKeyBinding.dict
   cat > ~/Library/KeyBindings/DefaultKeyBinding.dict << EOF
@@ -228,6 +300,7 @@ nipsulidotfiles::setup_keybindings() {
     "~O" = "(insertText:, "Ö")";
 }
 EOF
+  nipsulidotfiles::log_success "Keybindings configured"
 }
 
 #######################################
@@ -251,6 +324,7 @@ EOF
 #   None
 ######################################
 nipsulidotfiles::configure_system_preferences() {
+  nipsulidotfiles::log_section "Configuring System Preferences"
   # Who the hell thought that Desktop would be good location for screenshots?
   mkdir -p ~/Desktop/screenshots
   defaults write com.apple.screencapture location ~/Desktop/screenshots
@@ -282,12 +356,13 @@ nipsulidotfiles::configure_system_preferences() {
   # Hide dock to right so it won't take half of the screen
   defaults write com.apple.dock autohide -int 1
   defaults write com.apple.dock orientation right
-  defaults write com.apple.dock titlesize -int 16
+  defaults write com.apple.dock tilesize -int 16
 
-  echo "restarting affected applications"
+  nipsulidotfiles::log_info "Restarting affected applications..."
   killall SystemUIServer
   killall Finder
   killall Dock
+  nipsulidotfiles::log_success "System preferences configured"
 }
 
 #######################################
@@ -323,6 +398,7 @@ nipsulidotfiles::setup_basic_env() {
 #   None
 ######################################
 nipsulidotfiles::install_commandline_tools() {
+  nipsulidotfiles::log_info "Installing command line tools..."
   brew install eza
   brew install bat
   brew install fzf
@@ -337,6 +413,7 @@ nipsulidotfiles::install_commandline_tools() {
   brew install coreutils findutils
   brew install gnu-tar gnu-sed gawk gnutls gnu-indent gnu-getopt
   brew install grep wget gzip
+  nipsulidotfiles::log_success "Command line tools installed"
 }
 
 #######################################
@@ -371,12 +448,14 @@ nipsulidotfiles::link_shell_profile() {
 #   None
 ######################################
 nipsulidotfiles::configure_console_styles() {
+  nipsulidotfiles::log_info "Configuring console styles (starship, fonts)..."
   brew install starship
   # shellcheck disable=SC2016
   nipsulidotfiles::append_to_shell_files 'eval "$(starship init %SHELL_NAME%)"'
-  brew tap homebrew/cask-fonts
+  # brew tap homebrew/cask-fonts
   brew install --cask font-hack-nerd-font
   brew install --cask font-fira-code
+  nipsulidotfiles::log_success "Console styles configured"
 }
 
 ######################################
@@ -389,11 +468,13 @@ nipsulidotfiles::configure_console_styles() {
 #   None
 ####################################
 nipsulidotfiles::install_python() {
+  nipsulidotfiles::log_info "Installing Python (via uv)..."
   # uv is "A single tool to replace pip, pip-tools, pipx, poetry, pyenv, twine, virtualenv, and more."
   brew install uv
   # shellcheck disable=SC2016
   nipsulidotfiles::append_to_shell_files 'eval "$(uv generate-shell-completion %SHELL_NAME%)"'
-  uv python install install 3.14
+  uv python install 3.14
+  nipsulidotfiles::log_success "Python installed"
 }
 
 ######################################
@@ -424,11 +505,19 @@ nipsulidotfiles::install_lisp() {
 #   None
 ####################################
 nipsulidotfiles::install_node() {
+  nipsulidotfiles::log_info "Installing Node.js (via fnm)..."
   brew install fnm
   # shellcheck disable=SC2016
   nipsulidotfiles::append_to_shell_files 'eval "$(fnm env --use-on-cd --shell %SHELL_NAME%)"'
-  fnm completions --shell bash
-  fnm completions --shell zsh
+  # figure at some point how todo these
+  # fnm completions --shell bash
+  # fnm completions --shell zsh
+  # Like on bash one should have like
+  # source <(fnm completions --shell bash)
+  # and on zsh like
+  # source <(fnm completions --shell zsh) > /dev/null 2>&1
+  # compdef _fnm fnm compdump
+  # and we have one append to shell files function
 
   fnm install 24
   fnm default 24
@@ -436,6 +525,7 @@ nipsulidotfiles::install_node() {
   # needed for nvim stuff
   brew install fsouza/prettierd/prettierd
   npm install -g eslint_d
+  nipsulidotfiles::log_success "Node.js installed"
 }
 
 ######################################
@@ -449,6 +539,7 @@ nipsulidotfiles::install_node() {
 #   None
 ####################################
 nipsulidotfiles::install_languages() {
+  nipsulidotfiles::log_info "Installing programming languages..."
   nipsulidotfiles::install_python
   nipsulidotfiles::install_node
   brew install oven-sh/bun/bun
@@ -470,13 +561,14 @@ nipsulidotfiles::install_languages() {
   brew install shellcheck          # you will write shell scripts, at least check them
   # shellcheck disable=SC2312
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-  nipsulidotfiles::install_lisp
+  # nipsulidotfiles::install_lisp
+  nipsulidotfiles::log_success "Programming languages installed"
 }
 
 #######################################
 # Install and configure Wezterm
 # Used to run Alacritty, but Wezterm ended up being better
-# No evaluating ghostty as an alternative
+# Now evaluating ghostty as an alternative
 #
 # Globals:
 #   None
@@ -484,11 +576,13 @@ nipsulidotfiles::install_languages() {
 #   None
 ######################################
 nipsulidotfiles::install_terminalemulators() {
+  nipsulidotfiles::log_info "Installing terminal emulators (WezTerm, Ghostty)..."
   brew install --cask wezterm
   ln -sf "${PWD}/dotfiles/.wezterm.lua" ~/.wezterm.lua
   brew install --cask ghostty
   mkdir -p ~/.config/ghostty
   ln -sf "${PWD}/dotfiles/ghostty_config" ~/.config/ghostty/config
+  nipsulidotfiles::log_success "Terminal emulators installed"
 }
 
 
@@ -503,6 +597,7 @@ nipsulidotfiles::install_terminalemulators() {
 #   None
 ######################################
 nipsulidotfiles::install_vim() {
+  nipsulidotfiles::log_info "Installing Vim & Neovim..."
   brew install vim
   # I prefer Plug as vim plugin manager
   curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
@@ -523,18 +618,20 @@ nipsulidotfiles::install_vim() {
 
   # CosmicNvim requires pre-release
   brew install neovim --HEAD
-  mkdir -p ~/.config/nvim/
+  # Ensure ~/.config directory exists
+  mkdir -p ~/.config
   # OLD CONF ln -sf "${PWD}/dotfiles/init.vim" ~/.config/nvim/init.vim
   # Install CosmicNvim
   # Currently test driving CosmicNvim
-  cd ~/.config
-  git clone git@github.com:CosmicNvim/CosmicNvim.git nvim
-  ln -sf "${PWD}/dotfiles/cosmic/config.lua" ~/.config/nvim/lua/cosmic/config/
-  ln -sf "${PWD}/dotfiles/cosmic/editor.lua" ~/.config/nvim/lua/cosmic/config/
+  # Clone directly to ~/.config/nvim without changing directories
+  nipsulidotfiles::git_clone_if_missing "git@github.com:CosmicNvim/CosmicNvim.git" ~/.config/nvim
+  # Store current directory for symlinks
+  local curr_dir="${PWD}"
+  ln -sf "${curr_dir}/dotfiles/cosmic/config.lua" ~/.config/nvim/lua/cosmic/config/
+  ln -sf "${curr_dir}/dotfiles/cosmic/editor.lua" ~/.config/nvim/lua/cosmic/config/
   # CosmicNvim installs all the stuff
   nvim --headless +qa
-  # trigger copilot install
-  # nvim --headless +Copilot setup +q
+  nipsulidotfiles::log_success "Vim & Neovim installed"
 }
 
 #######################################
@@ -549,14 +646,16 @@ nipsulidotfiles::install_vim() {
 #   None
 ######################################
 nipsulidotfiles::install_tmux() {
+  nipsulidotfiles::log_info "Installing tmux..."
   brew install tmux
   # this next was needed at least before for tmux copy, not 100% any more
   brew install reattach-to-user-namespace
   ln -sf "${PWD}/dotfiles/.tmux.conf" ~/.tmux.conf
-  git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+  nipsulidotfiles::git_clone_if_missing "https://github.com/tmux-plugins/tpm" ~/.tmux/plugins/tpm
   # shellcheck disable=SC2088
   tmux new -s install_session \
     '~/.tmux/plugins/tpm/tpm && ~/.tmux/plugins/tpm/bindings/install_plugins'
+  nipsulidotfiles::log_success "tmux installed"
 }
 
 #######################################
@@ -573,6 +672,7 @@ nipsulidotfiles::install_tmux() {
 #   None
 ######################################
 nipsulidotfiles::configure_terminal() {
+  nipsulidotfiles::log_section "Configuring Terminal Environment"
   nipsulidotfiles::install_commandline_tools
   nipsulidotfiles::link_shell_profile
   nipsulidotfiles::configure_console_styles
@@ -580,6 +680,7 @@ nipsulidotfiles::configure_terminal() {
   nipsulidotfiles::install_terminalemulators
   nipsulidotfiles::install_vim
   nipsulidotfiles::install_tmux
+  nipsulidotfiles::log_success "Terminal environment configured"
 }
 
 ######################################
@@ -596,9 +697,12 @@ nipsulidotfiles::configure_terminal() {
 #   None
 ######################################
 nipsulidotfiles::install_internet_security_apps() {
+  nipsulidotfiles::log_section "Installing Internet & Security Apps"
+  nipsulidotfiles::log_info "Installing WARP, Little Snitch..."
   brew install --cask cloudflare-warp
   # brew install --cask private-internet-access
   brew install --cask little-snitch
+  nipsulidotfiles::log_success "Internet & security apps installed"
 }
 
 ######################################
@@ -619,6 +723,8 @@ nipsulidotfiles::install_internet_security_apps() {
 #   None
 #####################################
 nipsulidotfiles::install_utilities() {
+  nipsulidotfiles::log_section "Installing Utilities"
+  nipsulidotfiles::log_info "Installing Spotify, iStat Menus, Raycast, and more..."
   brew install --cask spotify
   brew install ncspot           # Commandline spotify for the true ppl
   # brew install --cask rectangle # NOTE: could try https://emmetapp.com
@@ -630,7 +736,9 @@ nipsulidotfiles::install_utilities() {
   # brew install --cask xbar      # Could probs replace iStat Menus with this
   brew install hstr             # command history searcher
   # https://github.com/yorukot/superfile
+  # shellcheck disable=SC2312
   bash -c "$(curl -sLo- https://superfile.netlify.app/install.sh)"
+  nipsulidotfiles::log_success "Utilities installed"
 }
 
 ######################################
@@ -659,6 +767,8 @@ nipsulidotfiles::install_utilities() {
 #   None
 #####################################
 nipsulidotfiles::install_productivity_apps() {
+  nipsulidotfiles::log_section "Installing Productivity Apps"
+  nipsulidotfiles::log_info "Installing Obsidian, Spark..."
   brew install --cask obsidian
   # mas install 1274495053
   # mas install 975937182       # Fantastical,
@@ -667,6 +777,7 @@ nipsulidotfiles::install_productivity_apps() {
   # brew install --cask fantastical
   mas install 1176895641        # Spark
   # brew install --cask shottr    # Screenshot app
+  nipsulidotfiles::log_success "Productivity apps installed"
 }
 
 ######################################
@@ -684,9 +795,12 @@ nipsulidotfiles::install_productivity_apps() {
 #   None
 #####################################
 nipsulidotfiles::install_messengers() {
+  nipsulidotfiles::log_section "Installing Messengers"
+  nipsulidotfiles::log_info "Installing Slack, Discord..."
   mas install 803453959         # Slack
   # mas install 747648890         # Telegram
   brew install --cask discord   # For cool kids
+  nipsulidotfiles::log_success "Messengers installed"
 }
 
 ######################################
@@ -738,6 +852,8 @@ nipsulidotfiles::install_firefox() {
 #   None
 ####################################
 nipsulidotfiles::install_browsers() {
+  nipsulidotfiles::log_section "Installing Browsers"
+  nipsulidotfiles::log_info "Installing Chrome, Zen, Firefox, Helium..."
   # brew install --cask vivaldi
   brew install --cask google-chrome
   brew install --cask zen-browser
@@ -745,6 +861,7 @@ nipsulidotfiles::install_browsers() {
   brew install --cask helium-browser
   # brew install --cask opera
   # mas install 1480933944             # Vimari plugin for Safari
+  nipsulidotfiles::log_success "Browsers installed"
 }
 
 ######################################
@@ -761,8 +878,7 @@ nipsulidotfiles::install_vscode() {
   brew install visual-studio-code
   # shellcheck disable=SC2016
   nipsulidotfiles::append_to_shell_files \
-    'export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/
-    Resources/app/bin"'
+    'export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"'
   # code --install-extension iocave.customize-ui     # get rid of title bar
   code --install-extension VSCodeVim.Vim           # who doesn't want vim?
   code --install-extension bmalehorn.shell-syntax  # Yup yup, shell syntax
@@ -781,9 +897,12 @@ nipsulidotfiles::install_vscode() {
 #   None
 ####################################
 nipsulidotfiles::install_gui_text_editors() {
+  nipsulidotfiles::log_section "Installing GUI Text Editors"
+  nipsulidotfiles::log_info "Installing Sublime Text, Zed..."
   brew install sublime-text
   # nipsulidotfiles::install_vscode
   brew install --cask zed
+  nipsulidotfiles::log_success "GUI text editors installed"
 }
 
 ######################################
@@ -808,6 +927,8 @@ nipsulidotfiles::install_gui_text_editors() {
 #   None
 ####################################
 nipsulidotfiles::install_virtualizations() {
+  nipsulidotfiles::log_section "Installing Virtualization Tools"
+  nipsulidotfiles::log_info "Installing Docker, direnv, Lima, Colima, Tart..."
   brew install docker
   # brew install virtualbox
   brew install direnv
@@ -817,6 +938,7 @@ nipsulidotfiles::install_virtualizations() {
   brew install lima
   brew install colima
   brew install cirruslabs/cli/tart
+  nipsulidotfiles::log_success "Virtualization tools installed"
 }
 
 ######################################
@@ -831,6 +953,8 @@ nipsulidotfiles::install_virtualizations() {
 #   None
 ####################################
 nipsulidotfiles::install_helper_scripts() {
+  nipsulidotfiles::log_section "Installing Helper Scripts"
+  nipsulidotfiles::log_info "Linking scripts and installing cheat.sh..."
   mkdir -p ~/bin
   ln -sf "${PWD}/scripts/mtwrfsu" ~/bin/mtwrfsu
   ln -sf "${PWD}/scripts/git-clean" ~/bin/git-clean
@@ -839,6 +963,7 @@ nipsulidotfiles::install_helper_scripts() {
   chmod +x ~/bin/cht.sh
   brew install rlwrap
   brew install mutagen-io/mutagen/mutagen
+  nipsulidotfiles::log_success "Helper scripts installed"
 }
 
 main() {
@@ -854,7 +979,11 @@ fi
 # remind about manual installations
 ####################################
 nipsulidotfiles::remind_manual_installations() {
-  echo "Remember check manually"
-  # from lisp installation, could think if can be automated
-  echo "# do\n# sbcl --load quicklisp.lisp\n# (quicklisp-quickstart:install)\n# (exit)"
+  nipsulidotfiles::log_section "Manual Steps Required"
+  ehco "Remember to login to all places..."
+  # nipsulidotfiles::log_warn "Remember to complete these manual steps:"
+  # echo "  - Lisp/Quicklisp setup:"
+  # echo "      sbcl --load quicklisp.lisp"
+  # echo "      (quicklisp-quickstart:install)"
+  # echo "      (exit)"
 }

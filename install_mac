@@ -10,6 +10,8 @@ set -e
 source "$(dirname -- "$0")"/nipsulidotfiles.sh
 
 main() {
+  nipsulidotfiles::log_section "Starting Mac Setup"
+  nipsulidotfiles::log_info "This script will configure your Mac the way Nipsuli likes it"
   nipsulidotfiles::install_package_managers
   nipsulidotfiles::setup_git
   nipsulidotfiles::setup_keybindings
@@ -25,6 +27,8 @@ main() {
   nipsulidotfiles::install_virtualizations
   nipsulidotfiles::install_helper_scripts
   nipsulidotfiles::remind_manual_installations
+  nipsulidotfiles::log_section "Setup Complete!"
+  nipsulidotfiles::log_success "Your Mac has been configured. Please restart your terminal."
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
