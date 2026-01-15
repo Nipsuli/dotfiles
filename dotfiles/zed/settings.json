@@ -46,24 +46,33 @@
     "mode": "subtle",
     "copilot": {
       "proxy": null,
-      "proxy_no_verify": null
+      "proxy_no_verify": null,
     },
-    "enabled_in_text_threads": false
+    "enabled_in_text_threads": false,
   },
   "features": {
-    "edit_prediction_provider": "zed"
+    "edit_prediction_provider": "zed",
   },
   "agent": {
     "always_allow_tool_actions": true,
     "default_model": {
       "provider": "zed.dev",
-      "model": "claude-opus-4-1"
+      "model": "claude-opus-4-1",
     },
-    "model_parameters": []
+    "model_parameters": [],
   },
   "languages": {
+    "Python": {
+      "language_servers": [
+        // Disable basedpyright and enable ty, and otherwise
+        // use the default configuration.
+        "ty",
+        "!basedpyright",
+        "...",
+      ],
+    },
     "SQL": {
-      "tab_size": 2
+      "tab_size": 2,
     },
     "Markdown": {
       "formatter": {
@@ -73,15 +82,15 @@
             "--prose-wrap",
             "always",
             "--stdin-filepath",
-            "{buffer_path}"
-          ]
-        }
+            "{buffer_path}",
+          ],
+        },
       },
-      "format_on_save": "on"
+      "format_on_save": "on",
     },
     "Java": {
-      "format_on_save": "off"
-    }
+      "format_on_save": "off",
+    },
     // "TypeScript": {
     //   "language_servers": ["tsgo"]
     // }
@@ -100,14 +109,14 @@
   // don't allow cursor to reach edges of screen
   "vertical_scroll_margin": 20,
   "tab_bar": {
-    "show": false
+    "show": false,
   },
   "format_on_save": "on",
   "lsp": {
     "jdtls": {
       "settings": {
-        "lombok_support": true
-      }
+        "lombok_support": true,
+      },
     },
     "rust-analyzer": {
       "initialization_options": {
@@ -118,7 +127,7 @@
         // },
         "checkOnSave": true,
         "cargo": {
-          "allTargets": false
+          "allTargets": false,
           // "buildScripts": {
           //   // "rebuildOnSave": false,
           //   "useRustcWrapper": false
@@ -126,13 +135,13 @@
           // "extraEnv": {
           //   "RUSTC_WRAPPER": "/opt/homebrew/bin/sccache"
           // }
-        }
+        },
         // "check": {
         //   "overrideCommand": [
         //     "cargo check --quiet --workspace --message-format=json"
         //   ]
         // }
-      }
-    }
-  }
+      },
+    },
+  },
 }
