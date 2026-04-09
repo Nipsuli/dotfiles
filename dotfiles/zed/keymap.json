@@ -5,8 +5,8 @@
     "bindings": {
       "tab": "editor::Tab",
       "cmd-]": "window::ShowNextWindowTab",
-      "cmd-[": "window::ShowPreviousWindowTab"
-    }
+      "cmd-[": "window::ShowPreviousWindowTab",
+    },
   },
   // improving completion
   // need to overwrite some defaults to get bit better, but not possible yet
@@ -15,24 +15,24 @@
     "context": "Editor && edit_prediction && !showing_completions",
     "bindings": {
       "tab": "editor::Tab",
-      "ctrl-y": "editor::AcceptEditPrediction"
-    }
+      "ctrl-y": "editor::AcceptEditPrediction",
+    },
   },
   {
     "context": "Editor && showing_completions",
     "bindings": {
       "tab": "editor::Tab",
       "enter": "editor::Newline",
-      "ctrl-y": "editor::ConfirmCompletion"
-    }
+      "ctrl-y": "editor::ConfirmCompletion",
+    },
   },
   {
     "context": "Editor && showing_code_actions",
     "bindings": {
       "tab": "editor::Tab",
       "enter": "editor::Newline",
-      "ctrl-y": "editor::ConfirmCodeAction"
-    }
+      "ctrl-y": "editor::ConfirmCodeAction",
+    },
   },
   // pane navigation
   {
@@ -41,16 +41,16 @@
       "ctrl-w h": "workspace::ActivatePaneLeft",
       "ctrl-w l": "workspace::ActivatePaneRight",
       "ctrl-w k": "workspace::ActivatePaneUp",
-      "ctrl-w j": "workspace::ActivatePaneDown"
+      "ctrl-w j": "workspace::ActivatePaneDown",
       // ... or other keybindings
-    }
+    },
   },
   // placeholders for vim bindings
   {
     "context": "Editor && (vim_mode == normal || vim_mode == visual) && !VimWaiting && !menu",
     "bindings": {
       // put key-bindings here if you want them to work in normal & visual mode
-    }
+    },
   },
   {
     "context": "Editor && vim_mode == normal && !VimWaiting && !menu",
@@ -58,13 +58,13 @@
       // put key-bindings here if you want them to work only in normal mode
       // "down": ["workspace::SendKeystrokes", "4 j"]
       // "up": ["workspace::SendKeystrokes", "4 k"]
-    }
+    },
   },
   {
     "context": "Editor && vim_mode == visual && !VimWaiting && !menu",
     "bindings": {
       // visual, visual line & visual block modes
-    }
+    },
   },
   {
     "context": "Editor && vim_mode == insert && !menu",
@@ -72,6 +72,6 @@
       // put key-bindings here if you want them to work in insert mode
       // e.g.
       // "j j": "vim::NormalBefore" // remap jj in insert mode to escape.
-    }
-  }
+    },
+  },
 ]

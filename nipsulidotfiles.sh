@@ -273,6 +273,8 @@ nipsulidotfiles::setup_git() {
   echo
   git config --global user.signingkey "${keyid}"
   git config --global commit.gpgsign true
+  # setup wt
+  brew install max-sixty/worktrunk/wt && wt config shell install
   nipsulidotfiles::log_success "Git & GitHub setup complete"
 }
 
