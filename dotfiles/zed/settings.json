@@ -51,9 +51,6 @@
     },
     "enabled_in_text_threads": false,
   },
-  "features": {
-    "edit_prediction_provider": "zed",
-  },
   "agent": {
     "tool_permissions": {
       "default": "allow"
