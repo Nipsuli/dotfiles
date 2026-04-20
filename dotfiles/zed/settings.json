@@ -42,7 +42,16 @@
     "default_profile": "ask",
     "version": "2"
   }, */
+  "agent_servers": {
+    "claude-acp": {
+      "type": "registry"
+    },
+    "codex-acp": {
+      "type": "registry"
+    }
+  },
   "edit_predictions": {
+    "provider": "zed",
     "mode": "subtle",
     "copilot": {
       "proxy": null,
@@ -50,14 +59,13 @@
     },
     "enabled_in_text_threads": false,
   },
-  "features": {
-    "edit_prediction_provider": "zed",
-  },
   "agent": {
-    "always_allow_tool_actions": true,
+    "tool_permissions": {
+      "default": "allow",
+    },
     "default_model": {
-      "provider": "zed.dev",
-      "model": "claude-opus-4-1",
+      "provider": "anthropic",
+      "model": "claude-opus-4-5-latest",
     },
     "model_parameters": [],
   },
@@ -68,6 +76,7 @@
         // use the default configuration.
         "ty",
         "!basedpyright",
+        "!pylsp",
         "...",
       ],
     },
@@ -75,17 +84,17 @@
       "tab_size": 2,
     },
     "Markdown": {
-      "formatter": {
-        "external": {
-          "command": "prettier",
-          "arguments": [
-            "--prose-wrap",
-            "always",
-            "--stdin-filepath",
-            "{buffer_path}",
-          ],
-        },
-      },
+      // "formatter": {
+      //   "external": {
+      //     "command": "prettier",
+      //     "arguments": [
+      //       "--prose-wrap",
+      //       "always",
+      //       "--stdin-filepath",
+      //       "{buffer_path}",
+      //     ],
+      //   },
+      // },
       "format_on_save": "on",
     },
     "Java": {
