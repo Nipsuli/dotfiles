@@ -42,6 +42,22 @@
     "default_profile": "ask",
     "version": "2"
   }, */
+  "project_panel": {
+    "dock": "right"
+  },
+  "outline_panel": {
+    "dock": "right"
+  },
+  "collaboration_panel": {
+    "dock": "right"
+  },
+  "git_panel": {
+    "dock": "right"
+  },
+  "agent_servers": {
+    "claude-acp": {
+      "type": "registry"
+    },
   "agent_servers": {
     "codex-acp": {
       "type": "registry"
@@ -57,12 +73,13 @@
     "enabled_in_text_threads": false,
   },
   "agent": {
+    "dock": "right",
     "tool_permissions": {
-      "default": "allow"
+      "default": "allow",
     },
     "default_model": {
-      "provider": "zed.dev",
-      "model": "claude-opus-4-1",
+      "provider": "anthropic",
+      "model": "claude-opus-4-5-latest",
     },
     "model_parameters": [],
   },
@@ -73,6 +90,7 @@
         // use the default configuration.
         "ty",
         "!basedpyright",
+        "!pylsp",
         "...",
       ],
     },
@@ -84,17 +102,17 @@
       "format_on_save": "on",
     },
     "Markdown": {
-      "formatter": {
-        "external": {
-          "command": "prettier",
-          "arguments": [
-            "--prose-wrap",
-            "always",
-            "--stdin-filepath",
-            "{buffer_path}",
-          ],
-        },
-      },
+      // "formatter": {
+      //   "external": {
+      //     "command": "prettier",
+      //     "arguments": [
+      //       "--prose-wrap",
+      //       "always",
+      //       "--stdin-filepath",
+      //       "{buffer_path}",
+      //     ],
+      //   },
+      // },
       "format_on_save": "on",
     },
     "Java": {
