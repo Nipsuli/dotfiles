@@ -42,6 +42,7 @@
     "default_profile": "ask",
     "version": "2"
   }, */
+  "cli_default_open_behavior": "new_window",
   "project_panel": {
     "dock": "right",
   },
@@ -68,7 +69,7 @@
     },
   },
   "agent": {
-    "dock": "right",
+    "dock": "left",
     "tool_permissions": {
       "default": "allow",
     },
