@@ -56,6 +56,9 @@
     "dock": "right",
   },
   "agent_servers": {
+    "codex-acp": {
+      "type": "registry"
+    },
     "claude-acp": {
       "type": "registry",
     },
@@ -69,6 +72,9 @@
     },
   },
   "agent": {
+    "show_turn_stats": true,
+    "use_modifier_to_send": true,
+    "new_thread_location": "new_worktree",
     "dock": "left",
     "tool_permissions": {
       "default": "allow",
