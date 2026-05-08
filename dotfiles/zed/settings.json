@@ -56,10 +56,10 @@
     "dock": "right",
   },
   "agent_servers": {
-    "gemini": {
+    "codex-acp": {
       "type": "registry"
     },
-    "codex-acp": {
+    "gemini": {
       "type": "registry"
     },
     "claude-acp": {
@@ -125,9 +125,16 @@
     "Java": {
       "format_on_save": "off",
     },
-    // "TypeScript": {
-    //   "language_servers": ["tsgo"]
-    // }
+    "TypeScript": {
+      "language_servers": ["oxfmt", "oxlint", "..."],
+      "formatter": { "language_server": { "name": "oxfmt" } },
+      "format_on_save": "on",
+    },
+    "TSX": {
+      "language_servers": ["oxfmt", "oxlint", "..."],
+      "formatter": { "language_server": { "name": "oxfmt" } },
+      "format_on_save": "on",
+    },
   },
   "use_system_window_tabs": true,
   "pane_split_direction_vertical": "right",
