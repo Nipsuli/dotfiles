@@ -83,10 +83,10 @@
       "default": "allow",
     },
     "default_model": {
-      "effort": "high",
+      "effort": "medium",
       "enable_thinking": true,
-      "provider": "zed.dev",
-      "model": "claude-sonnet-4-6",
+      "provider": "openai-subscribed",
+      "model": "gpt-5.5",
     },
     "model_parameters": [],
   },
