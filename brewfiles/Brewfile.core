@@ -1,0 +1,8 @@
+brew "direnv"
+brew "gh"
+brew "mas"
+brew "starship"
+
+cask "font-fira-code"
+cask "font-hack-nerd-font"
+cask "gpg-suite"

@@ -1,0 +1,9 @@
+tap "fsouza/prettierd"
+
+brew "fsouza/prettierd/prettierd"
+brew "neovim"
+brew "reattach-to-user-namespace"
+brew "tmux"
+brew "vim"
+
+cask "ghostty"

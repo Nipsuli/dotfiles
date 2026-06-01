@@ -1,34 +1,114 @@
 #!/bin/bash
+# shellcheck disable=SC2310,SC2312
 #######################################
-# Installs and configures Mac the way I like it
-#
-# <3 @Nipsuli <nipsuli@korvenlaita.fi>
+# Installs and configures Mac the way I like it.
 #######################################
 set -e
 
+DOTFILES_ROOT="$(cd "$(dirname -- "$0")" && pwd)"
+readonly DOTFILES_ROOT
+export NIPSULI_DOTFILES_ROOT="${DOTFILES_ROOT}"
+
 # shellcheck source=./nipsulidotfiles.sh
-source "$(dirname -- "$0")"/nipsulidotfiles.sh
+source "${DOTFILES_ROOT}/nipsulidotfiles.sh"
+
+readonly DEFAULT_PROFILES=(
+  core
+  cli
+  terminal
+  languages
+  apps
+  mas
+  virtualization
+  cloud
+)
+
+usage() {
+  cat <<'EOF'
+Usage:
+  ./install_mac [install] [profiles...]
+  ./install_mac dry-run [profiles...]
+  ./install_mac list [profiles...]
+  ./install_mac doctor [profiles...]
+
+Profiles:
+  core cli terminal languages apps mas virtualization cloud
+
+Examples:
+  EMAIL=you@example.com ./install_mac
+  ./install_mac dry-run apps cloud
+  ./install_mac doctor terminal languages
+EOF
+}
+
+selected_profiles() {
+  if [[ "$#" -eq 0 ]]; then
+    printf '%s\n' "${DEFAULT_PROFILES[@]}"
+  else
+    printf '%s\n' "$@"
+  fi
+}
+
+run_for_profiles() {
+  local action="$1"
+  shift
+  local profile
+  local status=0
+
+  while IFS= read -r profile; do
+    nipsulidotfiles::require_known_profile "${profile}"
+    case "${action}" in
+      install)
+        nipsulidotfiles::install_profile "${profile}"
+        ;;
+      dry-run)
+        nipsulidotfiles::dry_run_profile "${profile}"
+        ;;
+      list)
+        nipsulidotfiles::list_profile "${profile}"
+        ;;
+      doctor)
+        nipsulidotfiles::doctor_profile "${profile}" || status=1
+        ;;
+      *)
+        nipsulidotfiles::log_error "Unknown action: ${action}"
+        usage
+        exit 1
+      ;;
+    esac
+  done < <(selected_profiles "$@")
+
+  return "${status}"
+}
 
 main() {
-  nipsulidotfiles::log_section "Starting Mac Setup"
-  nipsulidotfiles::log_info "This script will configure your Mac the way Nipsuli likes it"
-  nipsulidotfiles::install_package_managers
-  nipsulidotfiles::setup_git
-  nipsulidotfiles::setup_keybindings
-  nipsulidotfiles::configure_system_preferences
-  nipsulidotfiles::setup_basic_env
-  nipsulidotfiles::configure_terminal
-  nipsulidotfiles::install_internet_security_apps
-  nipsulidotfiles::install_utilities
-  nipsulidotfiles::install_productivity_apps
-  nipsulidotfiles::install_messengers
-  nipsulidotfiles::install_browsers
-  nipsulidotfiles::install_gui_text_editors
-  nipsulidotfiles::install_virtualizations
-  nipsulidotfiles::install_helper_scripts
-  nipsulidotfiles::remind_manual_installations
-  nipsulidotfiles::log_section "Setup Complete!"
-  nipsulidotfiles::log_success "Your Mac has been configured. Please restart your terminal."
+  local action="${1:-install}"
+
+  case "${action}" in
+    install|dry-run|list|doctor)
+      shift || true
+      ;;
+    -h|--help|help)
+      usage
+      return 0
+      ;;
+    *)
+      # Preserve the original no-subcommand feel: profile names imply install.
+      action="install"
+      ;;
+  esac
+
+  if [[ "${action}" == "install" ]]; then
+    nipsulidotfiles::bootstrap_package_managers
+  fi
+
+  run_for_profiles "${action}" "$@"
+
+  if [[ "${action}" == "install" ]]; then
+    nipsulidotfiles::remind_manual_installations
+    nipsulidotfiles::log_section "Setup Complete"
+    nipsulidotfiles::log_success "Restart your terminal before relying on newly added shell hooks."
+  fi
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then

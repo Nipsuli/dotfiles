@@ -1,19 +1,17 @@
 #!/bin/bash
+# shellcheck disable=SC2310,SC2311,SC2312,SC2249
 #######################################
-# Collection of functions to be used to setup and confugure personal/work
-# computer. Check what you'll need and make them work for you.
-#
-# <3 @Nipsuli <nipsuli@korvenlaita.fi>
+# Helper functions for the Mac setup orchestrator.
 #######################################
 set -e
 
 readonly BREW_INSTALL_SCRIPT="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
+readonly TIGRISFS_LATEST_RELEASE_URL="https://github.com/tigrisdata/tigrisfs/releases/latest"
+readonly TIGRISFS_DOWNLOAD_BASE_URL="https://github.com/tigrisdata/tigrisfs/releases/download"
 
-#######################################
-# BEGIN GENERIC HELPERS
-#######################################
+NIPSULI_DOTFILES_ROOT="${NIPSULI_DOTFILES_ROOT:-$(pwd)}"
+NIPSULI_BREWFILES_DIR="${NIPSULI_DOTFILES_ROOT}/brewfiles"
 
-# Color codes for logging
 readonly COLOR_RESET='\033[0m'
 readonly COLOR_GREEN='\033[0;32m'
 readonly COLOR_BLUE='\033[0;34m'
@@ -21,951 +19,750 @@ readonly COLOR_YELLOW='\033[0;33m'
 readonly COLOR_RED='\033[0;31m'
 readonly COLOR_CYAN='\033[0;36m'
 
-#######################################
-# Log an info message in blue
-#######################################
 nipsulidotfiles::log_info() {
   echo -e "${COLOR_BLUE}[INFO]${COLOR_RESET} $1"
 }
 
-#######################################
-# Log a success message in green
-#######################################
 nipsulidotfiles::log_success() {
   echo -e "${COLOR_GREEN}[SUCCESS]${COLOR_RESET} $1"
 }
 
-#######################################
-# Log a warning message in yellow
-#######################################
 nipsulidotfiles::log_warn() {
   echo -e "${COLOR_YELLOW}[WARN]${COLOR_RESET} $1"
 }
 
-#######################################
-# Log an error message in red
-#######################################
 nipsulidotfiles::log_error() {
   echo -e "${COLOR_RED}[ERROR]${COLOR_RESET} $1"
 }
 
-#######################################
-# Log a section header in cyan
-#######################################
 nipsulidotfiles::log_section() {
   echo -e "\n${COLOR_CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${COLOR_RESET}"
   echo -e "${COLOR_CYAN}▶ $1${COLOR_RESET}"
   echo -e "${COLOR_CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${COLOR_RESET}\n"
 }
 
-#######################################
-# Clone a git repo only if target directory doesn't exist
-# Idempotent: safe to call multiple times
-#
-# Arguments:
-#   repo_url - the git repository URL
-#   target_dir - the directory to clone into
-#######################################
+nipsulidotfiles::check_email_var() {
+  if [[ -z "${EMAIL:=}" ]]; then
+    nipsulidotfiles::log_error "No EMAIL environment variable available."
+    exit 1
+  fi
+}
+
+nipsulidotfiles::append_to_file() {
+  if [[ -z "${1}" ]] || [[ -z "${2}" ]]; then
+    nipsulidotfiles::log_error "Invalid usage, needs filepath and line."
+    exit 1
+  fi
+
+  local file="$1"
+  local line="$2"
+  touch "${file}"
+  grep -qF -- "${line}" "${file}" || printf '%s\n' "${line}" >> "${file}"
+}
+
+nipsulidotfiles::append_to_shell_files() {
+  if [[ -z "${1}" ]]; then
+    nipsulidotfiles::log_error "Invalid usage, needs a line to append."
+    exit 1
+  fi
+
+  local line_template="$1"
+  local shell_name
+  local formatted_line
+
+  shell_name="bash"
+  formatted_line="${line_template//%SHELL_NAME%/${shell_name}}"
+  nipsulidotfiles::append_to_file "${HOME}/.bash_profile" "${formatted_line}"
+
+  shell_name="zsh"
+  formatted_line="${line_template//%SHELL_NAME%/${shell_name}}"
+  nipsulidotfiles::append_to_file "${HOME}/.zshrc" "${formatted_line}"
+}
+
 nipsulidotfiles::git_clone_if_missing() {
   local repo_url="$1"
   local target_dir="$2"
+
   if [[ -d "${target_dir}" ]]; then
-    nipsulidotfiles::log_warn "Directory ${target_dir} already exists, skipping clone"
+    nipsulidotfiles::log_warn "Directory ${target_dir} already exists, skipping clone."
   else
     nipsulidotfiles::log_info "Cloning ${repo_url} to ${target_dir}"
     git clone "${repo_url}" "${target_dir}"
-    nipsulidotfiles::log_success "Cloned successfully"
   fi
 }
 
-#######################################
-# Ensure EMAIL variable is set. Exits if not availble
-#
-# Globals:
-#   EMAIL
-# Arguments:
-#   None
-#######################################
-nipsulidotfiles::check_email_var() {
-  if [[ -z "${EMAIL:=}" ]]; then
-    echo "No EMAIL environment variable available, bailing"
-    exit 1
-  fi
+nipsulidotfiles::require_known_profile() {
+  case "$1" in
+    core|cli|terminal|languages|apps|mas|virtualization|cloud)
+      return 0
+      ;;
+    *)
+      nipsulidotfiles::log_error "Unknown profile: $1"
+      exit 1
+      ;;
+  esac
 }
 
-#######################################
-# Appends text to file if it does not exist in the file yet
-# Idempotent: calling multiple times with same arguments results only one
-# append to the file
-# Asks for sudo for write to allow writing to e.g. /etc/hosts
-# TODO(@Nipsuli) perhaps sudo should be split to own argument
-#
-# Globals:
-#   None
-# Arguments:
-#   path to file
-#   text to append
-#######################################
-nipsulidotfiles::append_to_file() {
-  if [[ -z "${1}" ]] || [[ -z "${2}" ]]; then
-    echo "Invalid usage, needs 2 argumets: filepath and line to appends"
-    exit 1
-  fi
-  local file="$1"
-  local line="$2"
-  grep -qF -- "${line}" "${file}" \
-    || echo "${line}" | sudo tee -a "${file}"
+nipsulidotfiles::brewfile_for_profile() {
+  nipsulidotfiles::require_known_profile "$1"
+  printf '%s/Brewfile.%s\n' "${NIPSULI_BREWFILES_DIR}" "$1"
 }
 
-#######################################
-# Helper to append lines to _all_ the different shell files with single
-# command currently bash and zsh, due Macs transition from bash to zsh as
-# the default shell.
-#
-# In case the line needs a shell specific part there is %SHELL_NAME% macro
-# that is replaced with the shell name (bash|zsh)
-#
-# Globals:
-#   None
-# Arguments:
-#   text to append
-#######################################
-nipsulidotfiles::append_to_shell_files() {
-  if [[ -z "${1}" ]]; then
-    echo "Invalid usage, needs an argument: line to append to shell files"
-    exit 1
-  fi
-  touch ~/.bash_profile
-  touch ~/.zshrc
-  local shell_name="bash"
-  local formated_str=${1/\%SHELL_NAME\%/${shell_name}}
-  nipsulidotfiles::append_to_file ~/.bash_profile "${formated_str}"
-  local shell_name="zsh"
-  local formated_str=${1/\%SHELL_NAME\%/${shell_name}}
-  nipsulidotfiles::append_to_file ~/.zshrc "${formated_str}"
-}
-
-#######################################
-# END GENERIC HELPERS
-#######################################
-
-#######################################
-# Ensure xcode commandline tools are installed
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-######################################
 nipsulidotfiles::ensure_xcode_commandline_tools() {
   nipsulidotfiles::log_info "Checking Xcode command line tools..."
   if xcode-select -p >/dev/null 2>&1; then
-    nipsulidotfiles::log_success "Xcode command line tools already installed"
+    nipsulidotfiles::log_success "Xcode command line tools already installed."
   else
-    nipsulidotfiles::log_info "Installing Xcode command line tools"
+    nipsulidotfiles::log_info "Installing Xcode command line tools."
     xcode-select --install
-    nipsulidotfiles::log_success "Xcode command line tools installed"
   fi
 }
 
-#######################################
-# Ensure homebrew is installed
-#
-# https://brew.sh
-#
-# Globals:
-#   BREW_INSTALL_SCRIPT
-# Arguments:
-#   None
-######################################
 nipsulidotfiles::install_homebrew() {
+  local brew_shellenv
+
   nipsulidotfiles::log_info "Checking Homebrew..."
-  if type brew >&- ; then
-    nipsulidotfiles::log_success "Homebrew already installed"
+  if type brew >/dev/null 2>&1; then
+    nipsulidotfiles::log_success "Homebrew already installed."
   else
-    nipsulidotfiles::log_info "Installing Homebrew (this might take time)..."
+    nipsulidotfiles::log_info "Installing Homebrew. This might take time."
     # shellcheck disable=SC2312
     /bin/bash -c "$(curl -fsSL "${BREW_INSTALL_SCRIPT}")"
     # shellcheck disable=SC2016
     nipsulidotfiles::append_to_shell_files 'eval "$(/opt/homebrew/bin/brew shellenv)"'
-    evalcommand="$(/opt/homebrew/bin/brew shellenv)"
-    eval "${evalcommand}"
-    nipsulidotfiles::log_success "Homebrew installed"
+    brew_shellenv="$(/opt/homebrew/bin/brew shellenv)"
+    eval "${brew_shellenv}"
   fi
 }
 
-#######################################
-# Install command line client for App Store and ensure one is logged in
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-######################################
-nipsulidotfiles::install_appstore_cli() {
-  nipsulidotfiles::log_info "Installing App Store CLI (mas)..."
-  brew install mas                        # Commandline tool for App Store
-  nipsulidotfiles::log_success "mas installed"
-
-  read -n 1 -s -r -p "Need to login to AppStore manually, press any key to open App Store."
-  echo
-  open -a App\ Store
-  read -n 1 -s -r -p "Press any key to continue."
-  echo
-}
-
-#######################################
-# Installs packagemangers for mac:
-# * homebrew https://brew.sh
-# * command client for App Store: mas
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-######################################
-nipsulidotfiles::install_package_managers() {
-  nipsulidotfiles::log_section "Installing Package Managers"
+nipsulidotfiles::bootstrap_package_managers() {
+  nipsulidotfiles::log_section "Bootstrapping Package Managers"
   nipsulidotfiles::ensure_xcode_commandline_tools
   nipsulidotfiles::install_homebrew
-  nipsulidotfiles::install_appstore_cli
-  nipsulidotfiles::log_success "Package managers setup complete"
 }
 
-#######################################
-# Configures git and GitHub cli
-# * git with gpg signing
-# * GitHub client (gh)
-# * adds ssh key to GitHub
-#
-# Globals:
-#   EMAIL
-# Arguments:
-#   None
-######################################
-nipsulidotfiles::setup_git() {
-  nipsulidotfiles::log_section "Setting up Git & GitHub"
-  local keyid
+nipsulidotfiles::install_profile() {
+  local profile="$1"
+  local brewfile
+
+  brewfile="$(nipsulidotfiles::brewfile_for_profile "${profile}")"
+  nipsulidotfiles::log_section "Installing ${profile}"
+
+  if [[ "${profile}" == "mas" ]]; then
+    nipsulidotfiles::ensure_mas_login
+  fi
+
+  HOMEBREW_NO_AUTO_UPDATE=1 brew bundle install --file "${brewfile}"
+  nipsulidotfiles::configure_profile "${profile}"
+}
+
+nipsulidotfiles::dry_run_profile() {
+  local profile="$1"
+  local brewfile
+
+  brewfile="$(nipsulidotfiles::brewfile_for_profile "${profile}")"
+  nipsulidotfiles::log_section "Dry run ${profile}"
+  nipsulidotfiles::log_info "Checking ${brewfile}"
+
+  if HOMEBREW_NO_AUTO_UPDATE=1 brew bundle check --file "${brewfile}"; then
+    nipsulidotfiles::log_success "All Brewfile entries for ${profile} are installed."
+  else
+    nipsulidotfiles::log_warn "Missing Brewfile entries listed above."
+  fi
+
+  nipsulidotfiles::print_profile_config_actions "${profile}"
+}
+
+nipsulidotfiles::list_profile() {
+  local profile="$1"
+  local brewfile
+
+  brewfile="$(nipsulidotfiles::brewfile_for_profile "${profile}")"
+  nipsulidotfiles::log_section "Listing ${profile}"
+  HOMEBREW_NO_AUTO_UPDATE=1 brew bundle list --all --file "${brewfile}"
+  nipsulidotfiles::print_profile_config_actions "${profile}"
+}
+
+nipsulidotfiles::configure_profile() {
+  case "$1" in
+    core)
+      nipsulidotfiles::configure_core
+      ;;
+    cli)
+      nipsulidotfiles::configure_cli
+      ;;
+    terminal)
+      nipsulidotfiles::configure_terminal
+      ;;
+    languages)
+      nipsulidotfiles::configure_languages
+      ;;
+    apps)
+      nipsulidotfiles::configure_apps
+      ;;
+    mas)
+      nipsulidotfiles::configure_mas
+      ;;
+    virtualization)
+      nipsulidotfiles::configure_virtualization
+      ;;
+    cloud)
+      nipsulidotfiles::configure_cloud
+      ;;
+  esac
+}
+
+nipsulidotfiles::print_profile_config_actions() {
+  nipsulidotfiles::log_info "Post-install configuration actions:"
+  case "$1" in
+    core)
+      cat <<'EOF'
+  - configure EMAIL, shell profile, starship, direnv, git, GPG, keybindings, and macOS defaults
+EOF
+      ;;
+    cli)
+      cat <<'EOF'
+  - link helper scripts into ~/bin and install cht.sh
+  - enable fzf shell completions/keybindings without changing shell rc files directly
+EOF
+      ;;
+    terminal)
+      cat <<'EOF'
+  - link Ghostty, Vim, tmux, and CosmicNvim config
+  - install vim-plug and tmux plugins
+  - bootstrap CosmicNvim headlessly
+EOF
+      ;;
+    languages)
+      cat <<'EOF'
+  - configure uv, fnm, Bun, Rust, Clojure, and shell hooks
+  - install Node 24 through fnm
+  - install Python 3.14 through uv
+EOF
+      ;;
+    apps)
+      cat <<'EOF'
+  - link Zed settings and keymap
+EOF
+      ;;
+    mas)
+      cat <<'EOF'
+  - verify the App Store account is available before mas installs
+EOF
+      ;;
+    virtualization)
+      cat <<'EOF'
+  - verify Docker CLI and Colima are present
+EOF
+      ;;
+    cloud)
+      cat <<'EOF'
+  - install TigrisFS into ~/bin if missing
+  - remove the Tigris-provided t3 shim when it points at the Tigris CLI
+  - leave Tigris credentials and mounts for manual setup
+EOF
+      ;;
+  esac
+}
+
+nipsulidotfiles::configure_core() {
+  nipsulidotfiles::log_info "Configuring core system settings..."
+  nipsulidotfiles::setup_basic_env
+  nipsulidotfiles::link_shell_profile
+  nipsulidotfiles::configure_console_styles
+  nipsulidotfiles::configure_direnv
+  nipsulidotfiles::setup_git
+  nipsulidotfiles::setup_keybindings
+  nipsulidotfiles::configure_system_preferences
+  nipsulidotfiles::log_success "Core configuration complete."
+}
+
+nipsulidotfiles::setup_basic_env() {
   nipsulidotfiles::check_email_var
-  nipsulidotfiles::log_info "Configuring git with email: ${EMAIL}"
+  nipsulidotfiles::append_to_shell_files "export EMAIL=${EMAIL}"
+}
+
+nipsulidotfiles::link_shell_profile() {
+  ln -sf "${NIPSULI_DOTFILES_ROOT}/dotfiles/.nipsuli_profile" "${HOME}/.nipsuli_profile"
+  nipsulidotfiles::append_to_shell_files "source ~/.nipsuli_profile"
+}
+
+nipsulidotfiles::configure_console_styles() {
+  # shellcheck disable=SC2016
+  nipsulidotfiles::append_to_shell_files 'eval "$(starship init %SHELL_NAME%)"'
+}
+
+nipsulidotfiles::configure_direnv() {
+  # shellcheck disable=SC2016
+  nipsulidotfiles::append_to_shell_files 'eval "$(direnv hook %SHELL_NAME%)"'
+}
+
+nipsulidotfiles::setup_git() {
+  local keyid
+
+  nipsulidotfiles::check_email_var
   git config --global user.email "${EMAIL}"
   git config --global pull.rebase false
-  ssh-keygen -t ed25519 -C "${EMAIL}" || true # allow not overwriting
-  brew install gh
-  gh auth login                   # This will also upload ssh key to GitHub
-  brew install --cask gpg-suite
-  gpg --quick-generate-key "<${EMAIL}>"
-  read -n 1 -s -r -p "This will push the public gpg key to to clipboard and open
-    GitHub for you to add the key. Press any key to continue"
-  echo
-  # shellcheck disable=SC2312
-  keyid=$(gpg --list-signatures --with-colons \
-    | grep 'sig' \
-    | grep "${EMAIL}" \
-    | head -n 1 \
-    | cut -d':' -f5)
-  readonly keyid
-  # shellcheck disable=SC2312
-  gpg --export -a "${keyid}" | pbcopy
-  open https://github.com/settings/gpg/new
-  read -n 1 -s -r -p "Continue after you've set up the key.
-    Press any key to continue"
-  echo
-  git config --global user.signingkey "${keyid}"
-  git config --global commit.gpgsign true
-  # setup wt
-  brew install max-sixty/worktrunk/wt && wt config shell install
-  nipsulidotfiles::log_success "Git & GitHub setup complete"
+
+  if [[ ! -f "${HOME}/.ssh/id_ed25519.pub" ]]; then
+    nipsulidotfiles::log_info "Creating default ed25519 SSH key."
+    ssh-keygen -t ed25519 -C "${EMAIL}" -f "${HOME}/.ssh/id_ed25519" -N ""
+  fi
+
+  if command -v gh >/dev/null 2>&1; then
+    if gh auth status >/dev/null 2>&1; then
+      nipsulidotfiles::log_success "GitHub CLI already authenticated."
+    else
+      nipsulidotfiles::log_warn "GitHub CLI is not authenticated; starting gh auth login."
+      gh auth login
+    fi
+  fi
+
+  if command -v gpg >/dev/null 2>&1; then
+    keyid="$(gpg --list-secret-keys --with-colons "${EMAIL}" 2>/dev/null \
+      | awk -F: '/^sec:/ { print $5; exit }' || true)"
+
+    if [[ -z "${keyid}" ]]; then
+      nipsulidotfiles::log_info "Generating GPG key for ${EMAIL}."
+      gpg --quick-generate-key "<${EMAIL}>"
+      keyid="$(gpg --list-secret-keys --with-colons "${EMAIL}" \
+        | awk -F: '/^sec:/ { print $5; exit }' || true)"
+      if [[ -n "${keyid}" ]]; then
+        gpg --export -a "${keyid}" | pbcopy || true
+        nipsulidotfiles::log_warn "New GPG public key copied to clipboard; add it to GitHub manually."
+      fi
+    fi
+
+    if [[ -n "${keyid}" ]]; then
+      git config --global user.signingkey "${keyid}"
+      git config --global commit.gpgsign true
+    fi
+  fi
 }
 
-#######################################
-# Configures alt + a/o to ä and ö
-# At least in US key layout this overwrites ø and å
-# This is personally preferred key mapping for those as I use US key layout but
-# need to write Finnish often. And alt + key is more convenient than ¨ + a/o
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-######################################
 nipsulidotfiles::setup_keybindings() {
-  nipsulidotfiles::log_section "Setting up Keybindings"
-  nipsulidotfiles::log_info "Configuring Finnish character shortcuts (alt+a/o → ä/ö)"
-  mkdir -p ~/Library/KeyBindings/
-  touch ~/Library/KeyBindings/DefaultKeyBinding.dict
-  cat > ~/Library/KeyBindings/DefaultKeyBinding.dict << EOF
+  nipsulidotfiles::log_info "Configuring Finnish character shortcuts."
+  mkdir -p "${HOME}/Library/KeyBindings"
+  cat > "${HOME}/Library/KeyBindings/DefaultKeyBinding.dict" <<'EOF'
 {
-    "~a" = "(insertText:, "ä")";
-    "~o" = "(insertText:, "ö")";
-    "~A" = "(insertText:, "Ä")";
-    "~O" = "(insertText:, "Ö")";
+    "~a" = "(insertText:, \"ä\")";
+    "~o" = "(insertText:, \"ö\")";
+    "~A" = "(insertText:, \"Ä\")";
+    "~O" = "(insertText:, \"Ö\")";
 }
 EOF
-  nipsulidotfiles::log_success "Keybindings configured"
 }
 
-#######################################
-# Configure System Preferences
-# Never configure stuff from GUI, store all settings here
-# How to find correct setting path:
-# https://pawelgrzybek.com/change-macos-user-preferences-via-command-line/
-#
-# Simplest way to find correct setting:
-# 1. defaults read > before
-# 2. toggle the setting in UI
-# 3. defaults read > after
-# 4. diff files
-#
-# These settings are sane defaults IMO, read the function body for every setting
-# Most likely this is still missing some valuable settings
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-######################################
 nipsulidotfiles::configure_system_preferences() {
-  nipsulidotfiles::log_section "Configuring System Preferences"
-  # Who the hell thought that Desktop would be good location for screenshots?
-  mkdir -p ~/Desktop/screenshots
-  defaults write com.apple.screencapture location ~/Desktop/screenshots
-  # Some sanity to finder, like showing also hidden files and full paths
+  nipsulidotfiles::log_info "Configuring macOS defaults."
+  mkdir -p "${HOME}/Desktop/screenshots"
+  defaults write com.apple.screencapture location "${HOME}/Desktop/screenshots"
   defaults write com.apple.finder AppleShowAllFiles YES
   defaults write com.apple.finder ShowPathbar -bool true
   defaults write com.apple.finder ShowStatusBar -bool true
-  # I don't like Apples default clock on the menu bar and and one cannot remove
-  # it, so best what I can do is to make it a small analog clock instead
   defaults write com.apple.menuextra.clock IsAnalog -bool true
-  # Disable smart dashes as they’re annoying when typing code
   defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
-  # Disable automatic periods with a double space
   defaults write NSGlobalDomain NSAutomaticPeriodSubstitutionEnabled -bool false
-  # Disable smart quotes as they’re annoying when typing code
   defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false
-  # Set a shorter delay until key repeat:
   defaults write NSGlobalDomain InitialKeyRepeat -int 15
-  # Set a blazingly fast keyboard repeat rate:
   defaults write NSGlobalDomain KeyRepeat -int 2
-  # make caps to esc
   defaults write com.apple.keyboard.modifiermapping.1452-834-0 '(
     {
       HIDKeyboardModifierMappingDst = 30064771113;
       HIDKeyboardModifierMappingSrc = 30064771129;
     }
   )'
-
-  # Hide dock to right so it won't take half of the screen
   defaults write com.apple.dock autohide -int 1
   defaults write com.apple.dock orientation right
   defaults write com.apple.dock tilesize -int 16
 
-  nipsulidotfiles::log_info "Restarting affected applications..."
-  killall SystemUIServer
-  killall Finder
-  killall Dock
-  nipsulidotfiles::log_success "System preferences configured"
+  killall SystemUIServer >/dev/null 2>&1 || true
+  killall Finder >/dev/null 2>&1 || true
+  killall Dock >/dev/null 2>&1 || true
 }
 
-#######################################
-# Set default exports to shell files
-# personally I like to have ${EMAIL} available
-#
-# Globals:
-#   EMAIL
-# Arguments:
-#   None
-######################################
-nipsulidotfiles::setup_basic_env() {
-  nipsulidotfiles::check_email_var
-  nipsulidotfiles::append_to_shell_files "export EMAIL=${EMAIL}"
+nipsulidotfiles::configure_cli() {
+  nipsulidotfiles::log_info "Configuring CLI helpers..."
+  nipsulidotfiles::configure_fzf
+  nipsulidotfiles::install_helper_scripts
+  nipsulidotfiles::log_success "CLI configuration complete."
 }
 
-#######################################
-# Install tools that make command line experience better
-#
-# Tools to be installed:
-# * eza, better looking ls (maintained fork of exa)
-# * bat, better looking cat
-# * fzf, rg and ag for search stuff
-# * tty-clock, u know, why not ⊂(◉‿◉)つ
-# * lot of small utils, gnu versions from many of them
-#
-# check for more possible goodies:
-# https://dev.to/_darrenburns/10-tools-to-power-up-your-command-line-4id4
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-######################################
-nipsulidotfiles::install_commandline_tools() {
-  nipsulidotfiles::log_info "Installing command line tools..."
-  brew install eza
-  brew install bat
-  brew install fzf
-  "$(brew --prefix)"/opt/fzf/install
-  brew install ripgrep
-  brew install the_silver_searcher
-  brew install tty-clock
-  brew install jq
-  brew install htop
-  brew install btop
-  brew install watch
-  brew install coreutils findutils
-  brew install gnu-tar gnu-sed gawk gnutls gnu-indent gnu-getopt
-  brew install grep wget gzip
-  nipsulidotfiles::log_success "Command line tools installed"
+nipsulidotfiles::configure_fzf() {
+  local fzf_install
+
+  fzf_install="$(brew --prefix)/opt/fzf/install"
+  if [[ -x "${fzf_install}" ]]; then
+    "${fzf_install}" --key-bindings --completion --no-update-rc
+  fi
 }
 
-#######################################
-# Link .bash_profile / .zsh
-# Works with both bash and zsh
-# This only adds linking and sourcing to the .bash_profile defined in this repo
-# to keep the bash_profile clean here, as many app installation pushes all kinds
-# of stuff to the .bash_profile / .zshrc
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-######################################
-nipsulidotfiles::link_shell_profile() {
-  ln -sf "${PWD}/dotfiles/.nipsuli_profile" ~/.nipsuli_profile
-  nipsulidotfiles::append_to_shell_files "source ~/.nipsuli_profile"
+nipsulidotfiles::install_helper_scripts() {
+  local script
+
+  mkdir -p "${HOME}/bin"
+  for script in "${NIPSULI_DOTFILES_ROOT}"/scripts/*; do
+    if [[ -f "${script}" ]]; then
+      ln -sf "${script}" "${HOME}/bin/$(basename "${script}")"
+    fi
+  done
+
+  curl -fsSL https://cht.sh/:cht.sh > "${HOME}/bin/cht.sh"
+  chmod +x "${HOME}/bin/cht.sh"
 }
 
-######################################
-# Configure styling for console
-# After everything I've tested so far I've settled with
-# [starship](https://starship.rs). It's simple, fast and configurable, but the
-# defaults are already spot on.
-#
-# Starship requires [nerdfonts](https://www.nerdfonts.com) so installing two of
-# my favourites: Hack and Fira-Code
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-######################################
-nipsulidotfiles::configure_console_styles() {
-  nipsulidotfiles::log_info "Configuring console styles (starship, fonts)..."
-  brew install starship
-  # shellcheck disable=SC2016
-  nipsulidotfiles::append_to_shell_files 'eval "$(starship init %SHELL_NAME%)"'
-  # brew tap homebrew/cask-fonts
-  brew install --cask font-hack-nerd-font
-  brew install --cask font-fira-code
-  nipsulidotfiles::log_success "Console styles configured"
+nipsulidotfiles::configure_terminal() {
+  nipsulidotfiles::log_info "Configuring terminal/editor stack..."
+  nipsulidotfiles::configure_ghostty
+  nipsulidotfiles::configure_vim
+  nipsulidotfiles::configure_neovim
+  nipsulidotfiles::configure_tmux
+  nipsulidotfiles::log_success "Terminal configuration complete."
 }
 
-######################################
-# Install python and friends
-# * uv as the new kid in the block
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-####################################
-nipsulidotfiles::install_python() {
-  nipsulidotfiles::log_info "Installing Python (via uv)..."
-  # uv is "A single tool to replace pip, pip-tools, pipx, poetry, pyenv, twine, virtualenv, and more."
-  brew install uv
+nipsulidotfiles::configure_ghostty() {
+  mkdir -p "${HOME}/.config/ghostty"
+  ln -sf "${NIPSULI_DOTFILES_ROOT}/dotfiles/ghostty_config" "${HOME}/.config/ghostty/config"
+}
+
+nipsulidotfiles::configure_vim() {
+  mkdir -p "${HOME}/.vim/autoload"
+  if [[ ! -f "${HOME}/.vim/autoload/plug.vim" ]]; then
+    curl -fLo "${HOME}/.vim/autoload/plug.vim" \
+      https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+  fi
+
+  ln -sf "${NIPSULI_DOTFILES_ROOT}/dotfiles/.vimrc" "${HOME}/.vimrc"
+  if command -v vim >/dev/null 2>&1; then
+    vim +'PlugInstall --sync' +qa || nipsulidotfiles::log_warn "vim-plug install did not finish cleanly."
+  fi
+}
+
+nipsulidotfiles::configure_neovim() {
+  mkdir -p "${HOME}/.config"
+  nipsulidotfiles::git_clone_if_missing "https://github.com/CosmicNvim/CosmicNvim.git" "${HOME}/.config/nvim"
+  mkdir -p "${HOME}/.config/nvim/lua/cosmic/config"
+  ln -sf "${NIPSULI_DOTFILES_ROOT}/dotfiles/cosmic/config.lua" "${HOME}/.config/nvim/lua/cosmic/config/config.lua"
+  ln -sf "${NIPSULI_DOTFILES_ROOT}/dotfiles/cosmic/editor.lua" "${HOME}/.config/nvim/lua/cosmic/config/editor.lua"
+
+  if command -v nvim >/dev/null 2>&1; then
+    nvim --headless +qa || nipsulidotfiles::log_warn "CosmicNvim bootstrap did not finish cleanly."
+  fi
+}
+
+nipsulidotfiles::configure_tmux() {
+  ln -sf "${NIPSULI_DOTFILES_ROOT}/dotfiles/.tmux.conf" "${HOME}/.tmux.conf"
+  nipsulidotfiles::git_clone_if_missing "https://github.com/tmux-plugins/tpm" "${HOME}/.tmux/plugins/tpm"
+
+  if [[ -x "${HOME}/.tmux/plugins/tpm/bin/install_plugins" ]]; then
+    "${HOME}/.tmux/plugins/tpm/bin/install_plugins" || true
+  fi
+}
+
+nipsulidotfiles::configure_languages() {
+  nipsulidotfiles::log_info "Configuring programming language tools..."
+  nipsulidotfiles::configure_uv
+  nipsulidotfiles::configure_node
+  nipsulidotfiles::configure_bun
+  nipsulidotfiles::configure_rust
+  nipsulidotfiles::log_success "Language configuration complete."
+}
+
+nipsulidotfiles::configure_uv() {
   # shellcheck disable=SC2016
   nipsulidotfiles::append_to_shell_files 'eval "$(uv generate-shell-completion %SHELL_NAME%)"'
-  uv python install 3.14
-  nipsulidotfiles::log_success "Python installed"
+  if command -v uv >/dev/null 2>&1; then
+    uv python install 3.14 || nipsulidotfiles::log_warn "uv Python install did not finish cleanly."
+  fi
 }
 
-######################################
-# Install lisp
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-####################################
-nipsulidotfiles::install_lisp() {
-  brew install sbcl
-  curl -O https://beta.quicklisp.org/quicklisp.lisp.asc
-  # figure out automation for
-  # do
-  # sbcl --load quicklisp.lisp
-  # (quicklisp-quickstart:install)
-  # (exit)
-}
+nipsulidotfiles::configure_node() {
+  local fnm_env
 
-######################################
-# Install node
-# use fnm as the fast node managoer
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-####################################
-nipsulidotfiles::install_node() {
-  nipsulidotfiles::log_info "Installing Node.js (via fnm)..."
-  brew install fnm
   # shellcheck disable=SC2016
   nipsulidotfiles::append_to_shell_files 'eval "$(fnm env --use-on-cd --shell %SHELL_NAME%)"'
-  # figure at some point how todo these
-  # fnm completions --shell bash
-  # fnm completions --shell zsh
-  # Like on bash one should have like
-  # source <(fnm completions --shell bash)
-  # and on zsh like
-  # source <(fnm completions --shell zsh) > /dev/null 2>&1
-  # compdef _fnm fnm compdump
-  # and we have one append to shell files function
 
-  fnm install 24
-  fnm default 24
-
-  # needed for nvim stuff
-  brew install fsouza/prettierd/prettierd
-  npm install -g eslint_d
-  nipsulidotfiles::log_success "Node.js installed"
+  if command -v fnm >/dev/null 2>&1; then
+    fnm_env="$(fnm env --shell bash)"
+    eval "${fnm_env}"
+    fnm install 24
+    fnm default 24
+    corepack enable || true
+  fi
 }
 
-######################################
-# Installs some languages and friends
-# Even though one probably should run most of the stuff within containers having
-# the languages locally can help e.g. with different auto completes
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-####################################
-nipsulidotfiles::install_languages() {
-  nipsulidotfiles::log_info "Installing programming languages..."
-  nipsulidotfiles::install_python
-  nipsulidotfiles::install_node
-  brew install oven-sh/bun/bun
+nipsulidotfiles::configure_bun() {
+  if ! command -v bun >/dev/null 2>&1; then
+    nipsulidotfiles::log_info "Installing Bun."
+    # shellcheck disable=SC2312
+    curl -fsSL https://bun.sh/install | bash
+  fi
 
-  brew install go
-  # brew install deno
-  # brew install cmake
-  # brew install mono
-  #
-  # brew install java
-  # local flags=(
-  #   /usr/local/opt/openjdk/libexec/openjdk.jdk
-  #   /Library/Java/JavaVirtualMachines/openjdk.jdk
-  # )
-  # sudo ln -sfn "${flags[@]}"
-  #
-  # brew install julia
-  # brew install zig
-  brew install shellcheck          # you will write shell scripts, at least check them
-  # shellcheck disable=SC2312
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-  # nipsulidotfiles::install_lisp
-  nipsulidotfiles::log_success "Programming languages installed"
-}
-
-#######################################
-# Install and configure Wezterm
-# Used to run Alacritty, but Wezterm ended up being better
-# Now evaluating ghostty as an alternative
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-######################################
-nipsulidotfiles::install_terminalemulators() {
-  nipsulidotfiles::log_info "Installing terminal emulators (WezTerm, Ghostty)..."
-  brew install --cask wezterm
-  ln -sf "${PWD}/dotfiles/.wezterm.lua" ~/.wezterm.lua
-  brew install --cask ghostty
-  mkdir -p ~/.config/ghostty
-  ln -sf "${PWD}/dotfiles/ghostty_config" ~/.config/ghostty/config
-  nipsulidotfiles::log_success "Terminal emulators installed"
-}
-
-
-#######################################
-# Install and configures vim
-#
-# Classic vim still as backup even though neovim is way better for all the suff
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-######################################
-nipsulidotfiles::install_vim() {
-  nipsulidotfiles::log_info "Installing Vim & Neovim..."
-  brew install vim
-  # I prefer Plug as vim plugin manager
-  curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
-    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-
-  ln -sf "${PWD}/dotfiles/.vimrc" ~/.vimrc
-  vim +'PlugInstall --sync' +qa
-
-  # This would take ages, and as vim is not anymore main editor, not doing it
-  # keeping it here as a reference
-  # Install YouCompleteMe
-  # this one will require most of the stuff from
-  # nipsulidotfiles::install_languages
-  # local curr_dir="${PWD}"
-  # cd ~/.vim/plugged/YouCompleteMe/
-  # python3 install.py --all
-  # cd "${curr_dir}"
-
-  # CosmicNvim requires pre-release
-  brew install neovim --HEAD
-  # Ensure ~/.config directory exists
-  mkdir -p ~/.config
-  # OLD CONF ln -sf "${PWD}/dotfiles/init.vim" ~/.config/nvim/init.vim
-  # Install CosmicNvim
-  # Currently test driving CosmicNvim
-  # Clone directly to ~/.config/nvim without changing directories
-  nipsulidotfiles::git_clone_if_missing "git@github.com:CosmicNvim/CosmicNvim.git" ~/.config/nvim
-  # Store current directory for symlinks
-  local curr_dir="${PWD}"
-  ln -sf "${curr_dir}/dotfiles/cosmic/config.lua" ~/.config/nvim/lua/cosmic/config/
-  ln -sf "${curr_dir}/dotfiles/cosmic/editor.lua" ~/.config/nvim/lua/cosmic/config/
-  # CosmicNvim installs all the stuff
-  nvim --headless +qa
-  nipsulidotfiles::log_success "Vim & Neovim installed"
-}
-
-#######################################
-# Install and configures tmux
-# * tpm for plugin manager
-# * links .tmux.conf
-# * installs plugins
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-######################################
-nipsulidotfiles::install_tmux() {
-  nipsulidotfiles::log_info "Installing tmux..."
-  brew install tmux
-  # this next was needed at least before for tmux copy, not 100% any more
-  brew install reattach-to-user-namespace
-  ln -sf "${PWD}/dotfiles/.tmux.conf" ~/.tmux.conf
-  nipsulidotfiles::git_clone_if_missing "https://github.com/tmux-plugins/tpm" ~/.tmux/plugins/tpm
-  # shellcheck disable=SC2088
-  tmux new -s install_session \
-    '~/.tmux/plugins/tpm/tpm && ~/.tmux/plugins/tpm/bindings/install_plugins'
-  nipsulidotfiles::log_success "tmux installed"
-}
-
-#######################################
-# Install terminal tools and does configuratiosn to make terminal life enjoyable
-# * Configures shell (bash/zsh)
-# * alacritty, terminal emulator
-# * vim (/neovim), preferred text editor
-# * tmux, terminal multiplexer
-# * + all kind of other goodies
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-######################################
-nipsulidotfiles::configure_terminal() {
-  nipsulidotfiles::log_section "Configuring Terminal Environment"
-  nipsulidotfiles::install_commandline_tools
-  nipsulidotfiles::link_shell_profile
-  nipsulidotfiles::configure_console_styles
-  nipsulidotfiles::install_languages
-  nipsulidotfiles::install_terminalemulators
-  nipsulidotfiles::install_vim
-  nipsulidotfiles::install_tmux
-  nipsulidotfiles::log_success "Terminal environment configured"
-}
-
-######################################
-# Install network and security related apps
-# * WARP, not-VPN VPN for private and fast internet access
-# * Private Internet Access, VPN, requires account
-# * wireguard, generic VPN client
-# * LastPass (including cli), Password manager
-# * Little Snitch, Network monitoring tool
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-######################################
-nipsulidotfiles::install_internet_security_apps() {
-  nipsulidotfiles::log_section "Installing Internet & Security Apps"
-  nipsulidotfiles::log_info "Installing WARP, Little Snitch..."
-  brew install --cask cloudflare-warp
-  # brew install --cask private-internet-access
-  brew install --cask little-snitch
-  nipsulidotfiles::log_success "Internet & security apps installed"
-}
-
-######################################
-# Install all kind of utilities
-# * Spotify
-# * Rectangle, window manager
-# * EasyRes, every once and while you'll need non standard resolutions
-# * iStat Menus, system monitoring tool to menubar
-# * Key Codes, useful when one needs the hex code of key combos
-# * Ping Plotter, Don't you hate bad internet connection?
-#                 Find where the bottleneck is with Ping Plotter!
-#                 Visual ping + traceroute
-# * Disk Inventory X, find what eats all the disk space!
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-#####################################
-nipsulidotfiles::install_utilities() {
-  nipsulidotfiles::log_section "Installing Utilities"
-  nipsulidotfiles::log_info "Installing Spotify, iStat Menus, Raycast, and more..."
-  brew install --cask spotify
-  brew install ncspot           # Commandline spotify for the true ppl
-  # brew install --cask rectangle # NOTE: could try https://emmetapp.com
-  brew install --cask istat-menus
-  brew install --cask pingplotter
-  brew install --cask disk-inventory-x
-  brew install --cask raycast
-  brew install --cask idrive
-  # brew install --cask xbar      # Could probs replace iStat Menus with this
-  brew install hstr             # command history searcher
-  # https://github.com/yorukot/superfile
-  # shellcheck disable=SC2312
-  bash -c "$(curl -sLo- https://superfile.netlify.app/install.sh)"
-  nipsulidotfiles::log_success "Utilities installed"
-}
-
-######################################
-# Install xbar plugins
-# Globals:
-#   None
-# Arguments:
-#   None
-#####################################
-# nipsulidotfiles::install_xbar_plugins() {
-#   curl https://raw.githubusercontent.com/unixorn/lima-xbar-plugin/main/lima-plugin --output ~/Library/Application\ Support/xbar/plugins/lima-plugin.30s
-#   chmod +x ~/Library/Application\ Support/xbar/plugins/lima-plugin.30s
-# }
-
-######################################
-# Install productivity apps
-# * Obsidian for notes
-# * MS ToDo,  I used to use Wunderlist, but MS bought it,
-#             and basically made ToDo from that.
-# * Fantastical, best calendar. Period.
-# * Spark, email app, highly recommend this one!
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-#####################################
-nipsulidotfiles::install_productivity_apps() {
-  nipsulidotfiles::log_section "Installing Productivity Apps"
-  nipsulidotfiles::log_info "Installing Obsidian, Spark..."
-  brew install --cask obsidian
-  # mas install 1274495053
-  # mas install 975937182       # Fantastical,
-                                # I've used the brew version and manual licence
-                                # You probably should use the mas version
-  # brew install --cask fantastical
-  mas install 1176895641        # Spark
-  # brew install --cask shottr    # Screenshot app
-  nipsulidotfiles::log_success "Productivity apps installed"
-}
-
-######################################
-# Install messenger apps
-# * Slack
-# * Telegram
-# * Discord
-#
-# I've been trying to find good app to combine all the chats to one place but
-# everything seems like shit ʕノ•ᴥ•ʔノ ︵ ┻━┻
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-#####################################
-nipsulidotfiles::install_messengers() {
-  nipsulidotfiles::log_section "Installing Messengers"
-  nipsulidotfiles::log_info "Installing Slack, Discord..."
-  mas install 803453959         # Slack
-  # mas install 747648890         # Telegram
-  brew install --cask discord   # For cool kids
-  nipsulidotfiles::log_success "Messengers installed"
-}
-
-######################################
-# Install Firefox
-# Configures also the minimalistic theme (skipping now)
-# Globals:
-#   None
-# Arguments:
-#   None
-####################################
-nipsulidotfiles::install_firefox() {
-  brew install --cask firefox
-  # mkdir -p ~/code
-  # git clone git@github.com:andreasgrafen/cascade.git ~/code/cascade
-  # local ffbasedir="$(echo /Users/"${USER}"/Library/Application\ Support/Firefox/Profiles/*.default-*)"
-  # mkdir -p "${ffbasedir}/chrome/includes"
-  # local userChromeFileName="${ffbasedir}/chrome/userChrome.css"
-  # if [ -f "$userCrhomeFilename"] ; then
-  #   rm "$userChromeFileName"
-  # fi
-  # ln -s "/Users/${USER}/code/cascade/chrome/userChrome.css" ${userChromeFileName}
-
-  # local includesBase="/Users/${USER}/code/cascade/chrome/includes"
-
-  # for item in "${includesBase}"/*; do
-  #   if [ -f "$item" ]; then
-  #     targetFile="${ffbasedir}/chrome/includes/$(basename "$item")"
-  #     if [ -f "$targetFile" ] ; then
-  #       rm "$targetFile"
-  #     fi
-  #     ln -s "$item" "$targetFile"
-  #   fi
-  # done
-}
-
-######################################
-# Install browsers
-# * Vivaldi, not main anymore
-# * Chrome, to isolate work accounts to own browser
-# * Firefox, I feel this browser isn't getting enought love from users
-# * Zen, trying as new main
-# * Helium, testing this new chrome one
-# * Opera, what's a computer without Opera, perhaps my first browser crush
-# I do like to compare different browsers. That's fun
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-####################################
-nipsulidotfiles::install_browsers() {
-  nipsulidotfiles::log_section "Installing Browsers"
-  nipsulidotfiles::log_info "Installing Chrome, Zen, Firefox, Helium..."
-  # brew install --cask vivaldi
-  brew install --cask google-chrome
-  brew install --cask zen-browser
-  nipsulidotfiles::install_firefox
-  brew install --cask helium-browser
-  # brew install --cask opera
-  # mas install 1480933944             # Vimari plugin for Safari
-  nipsulidotfiles::log_success "Browsers installed"
-}
-
-######################################
-# Installs VSCode and extensions
-# This does not contain all, VSCode is too sneaky to suggest installing from GUI
-# TODO(@Nipsuli) should ensure all good extensions are on this list
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-####################################
-nipsulidotfiles::install_vscode() {
-  brew install visual-studio-code
   # shellcheck disable=SC2016
-  nipsulidotfiles::append_to_shell_files \
-    'export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"'
-  # code --install-extension iocave.customize-ui     # get rid of title bar
-  code --install-extension VSCodeVim.Vim           # who doesn't want vim?
-  code --install-extension bmalehorn.shell-syntax  # Yup yup, shell syntax
-  code --install-extension timonwong.shellcheck    # + checking
-}
-
-######################################
-# Installs GUI text editors
-# * Sublime Text
-# * VSCode
-# * Zed as my main editor
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-####################################
-nipsulidotfiles::install_gui_text_editors() {
-  nipsulidotfiles::log_section "Installing GUI Text Editors"
-  nipsulidotfiles::log_info "Installing Sublime Text, Zed..."
-  brew install sublime-text
-  # nipsulidotfiles::install_vscode
-  brew install --cask zed
-  nipsulidotfiles::log_success "GUI text editors installed"
-}
-
-######################################
-# Installs "virtualizations"
-# * docker
-# * virtualbox
-# * direnv
-# * lima and colima
-# * tart
-# * dmg2img, helper to, well, convert dmg to "normal" disk image
-#
-# One should use docker for all dev stuff and run nothing on local machine.
-# Even though everything is containered in 202X one might need VM's.
-# [Direnv](https://direnv.net) allows you to scope environment variables to dir
-# so including it to this list.
-#
-# Tart is nice for OSX virtualization https://tart.run/quick-start/#
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-####################################
-nipsulidotfiles::install_virtualizations() {
-  nipsulidotfiles::log_section "Installing Virtualization Tools"
-  nipsulidotfiles::log_info "Installing Docker, direnv, Lima, Colima, Tart..."
-  brew install docker
-  # brew install virtualbox
-  brew install direnv
+  nipsulidotfiles::append_to_file "${HOME}/.zshrc" 'export BUN_INSTALL="$HOME/.bun"'
   # shellcheck disable=SC2016
-  nipsulidotfiles::append_to_shell_files 'eval "$(direnv hook %SHELL_NAME%)"'
-  brew install dmg2img
-  brew install lima
-  brew install colima
-  brew install cirruslabs/cli/tart
-  nipsulidotfiles::log_success "Virtualization tools installed"
+  nipsulidotfiles::append_to_file "${HOME}/.zshrc" 'export PATH="$BUN_INSTALL/bin:$PATH"'
+  # shellcheck disable=SC2016
+  nipsulidotfiles::append_to_file "${HOME}/.zshrc" '[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"'
 }
 
-######################################
-# Install helper scripts
-# Links all the scripts from ./scripts and adds command line cheatsheet
-# https://github.com/chubin/cheat.sh
-# to ~/bin
-#
-# Globals:
-#   None
-# Arguments:
-#   None
-####################################
-nipsulidotfiles::install_helper_scripts() {
-  nipsulidotfiles::log_section "Installing Helper Scripts"
-  nipsulidotfiles::log_info "Linking scripts and installing cheat.sh..."
-  mkdir -p ~/bin
-  ln -sf "${PWD}/scripts/mtwrfsu" ~/bin/mtwrfsu
-  ln -sf "${PWD}/scripts/git-clean" ~/bin/git-clean
-  # command line cheat sheet
-  curl https://cht.sh/:cht.sh > ~/bin/cht.sh
-  chmod +x ~/bin/cht.sh
-  brew install rlwrap
-  brew install mutagen-io/mutagen/mutagen
-  nipsulidotfiles::log_success "Helper scripts installed"
+nipsulidotfiles::configure_rust() {
+  if ! command -v rustup >/dev/null 2>&1; then
+    nipsulidotfiles::log_info "Installing Rust through rustup."
+    # shellcheck disable=SC2312
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  fi
+
+  # shellcheck disable=SC2016
+  nipsulidotfiles::append_to_shell_files '. "$HOME/.cargo/env"'
+}
+
+nipsulidotfiles::configure_apps() {
+  nipsulidotfiles::log_info "Configuring GUI app dotfiles..."
+  mkdir -p "${HOME}/.config/zed"
+  ln -sf "${NIPSULI_DOTFILES_ROOT}/dotfiles/zed/settings.json" "${HOME}/.config/zed/settings.json"
+  ln -sf "${NIPSULI_DOTFILES_ROOT}/dotfiles/zed/keymap.json" "${HOME}/.config/zed/keymap.json"
+  nipsulidotfiles::log_success "App configuration complete."
+}
+
+nipsulidotfiles::ensure_mas_login() {
+  if ! command -v mas >/dev/null 2>&1; then
+    HOMEBREW_NO_AUTO_UPDATE=1 brew install mas
+  fi
+
+  if mas account >/dev/null 2>&1; then
+    nipsulidotfiles::log_success "App Store CLI is authenticated."
+  else
+    nipsulidotfiles::log_warn "Log into the App Store before MAS installs continue."
+    open -a "App Store"
+    read -r -n 1 -p "Press any key after signing into the App Store..."
+    echo
+  fi
+}
+
+nipsulidotfiles::configure_mas() {
+  nipsulidotfiles::log_success "MAS apps installed. Xcode is included for the full GUI app."
+}
+
+nipsulidotfiles::configure_virtualization() {
+  nipsulidotfiles::log_info "Configuring virtualization tools..."
+  if command -v colima >/dev/null 2>&1; then
+    nipsulidotfiles::log_warn "Run 'colima start' when you want to start the Docker runtime."
+  fi
+}
+
+nipsulidotfiles::configure_cloud() {
+  nipsulidotfiles::log_info "Configuring cloud tools..."
+  nipsulidotfiles::remove_tigris_t3_shim
+  nipsulidotfiles::install_tigrisfs
+  nipsulidotfiles::log_warn "Tigris credentials and bucket mounts are intentionally manual."
+}
+
+nipsulidotfiles::remove_tigris_t3_shim() {
+  local t3_path
+  local t3_target
+
+  if ! command -v t3 >/dev/null 2>&1; then
+    return 0
+  fi
+
+  t3_path="$(command -v t3)"
+  t3_target="$(readlink "${t3_path}" || true)"
+
+  case "${t3_path} ${t3_target}" in
+    *tigris*|*Tigris*)
+      nipsulidotfiles::log_warn "Removing Tigris-provided t3 shim at ${t3_path}."
+      rm -f "${t3_path}"
+      ;;
+    *)
+      nipsulidotfiles::log_warn "Leaving existing t3 command alone: ${t3_path}"
+      ;;
+  esac
+}
+
+nipsulidotfiles::install_tigrisfs() {
+  local arch
+  local current_arch
+  local latest_url
+  local version
+  local archive_name
+  local archive_url
+  local checksum_url
+  local tmpdir
+  local expected_checksum
+  local actual_checksum
+  local binary_path
+
+  if command -v tigrisfs >/dev/null 2>&1; then
+    nipsulidotfiles::log_success "tigrisfs already installed."
+    return 0
+  fi
+
+  current_arch="$(uname -m)"
+  case "${current_arch}" in
+    arm64|aarch64)
+      arch="arm64"
+      ;;
+    x86_64|amd64)
+      arch="amd64"
+      ;;
+    *)
+      nipsulidotfiles::log_error "Unsupported architecture for tigrisfs: ${current_arch}"
+      return 1
+      ;;
+  esac
+
+  latest_url="$(curl -fsSLI -o /dev/null -w '%{url_effective}' "${TIGRISFS_LATEST_RELEASE_URL}")"
+  version="${latest_url##*/}"
+  version="${version#v}"
+  archive_name="tigrisfs_${version}_darwin_${arch}.tar.gz"
+  archive_url="${TIGRISFS_DOWNLOAD_BASE_URL}/v${version}/${archive_name}"
+  checksum_url="${TIGRISFS_DOWNLOAD_BASE_URL}/v${version}/checksums.txt"
+  tmpdir="$(mktemp -d)"
+
+  curl -fsSL "${archive_url}" -o "${tmpdir}/${archive_name}"
+  curl -fsSL "${checksum_url}" -o "${tmpdir}/checksums.txt"
+
+  expected_checksum="$(grep " ${archive_name}$" "${tmpdir}/checksums.txt" | awk '{ print $1 }')"
+  actual_checksum="$(shasum -a 256 "${tmpdir}/${archive_name}" | awk '{ print $1 }')"
+
+  if [[ -z "${expected_checksum}" ]] || [[ "${expected_checksum}" != "${actual_checksum}" ]]; then
+    nipsulidotfiles::log_error "Checksum verification failed for ${archive_name}."
+    rm -rf "${tmpdir}"
+    return 1
+  fi
+
+  tar -xzf "${tmpdir}/${archive_name}" -C "${tmpdir}"
+  binary_path="$(find "${tmpdir}" -type f -name tigrisfs | head -n 1)"
+  if [[ -z "${binary_path}" ]]; then
+    nipsulidotfiles::log_error "Could not find tigrisfs binary in archive."
+    rm -rf "${tmpdir}"
+    return 1
+  fi
+
+  mkdir -p "${HOME}/bin"
+  install -m 0755 "${binary_path}" "${HOME}/bin/tigrisfs"
+  rm -rf "${tmpdir}"
+  nipsulidotfiles::log_success "Installed tigrisfs into ${HOME}/bin/tigrisfs."
+}
+
+nipsulidotfiles::doctor_profile() {
+  local profile="$1"
+  local status=0
+  local brewfile
+
+  brewfile="$(nipsulidotfiles::brewfile_for_profile "${profile}")"
+  nipsulidotfiles::log_section "Doctor ${profile}"
+
+  if command -v brew >/dev/null 2>&1; then
+    if HOMEBREW_NO_AUTO_UPDATE=1 brew bundle check --file "${brewfile}"; then
+      nipsulidotfiles::log_success "Brewfile ${profile} is satisfied."
+    else
+      status=1
+    fi
+  else
+    nipsulidotfiles::log_error "Homebrew is not installed."
+    status=1
+  fi
+
+  case "${profile}" in
+    core)
+      nipsulidotfiles::doctor_command gh || status=1
+      nipsulidotfiles::doctor_command mas || status=1
+      nipsulidotfiles::doctor_command starship || status=1
+      xcode-select -p >/dev/null 2>&1 || status=1
+      ;;
+    cli)
+      nipsulidotfiles::doctor_command rg || status=1
+      nipsulidotfiles::doctor_command ag || status=1
+      nipsulidotfiles::doctor_command fzf || status=1
+      nipsulidotfiles::doctor_command jq || status=1
+      nipsulidotfiles::doctor_command ocrmypdf || status=1
+      ;;
+    terminal)
+      nipsulidotfiles::doctor_command ghostty || status=1
+      nipsulidotfiles::doctor_command tmux || status=1
+      nipsulidotfiles::doctor_command vim || status=1
+      nipsulidotfiles::doctor_command nvim || status=1
+      nipsulidotfiles::doctor_symlink "${HOME}/.config/ghostty/config" "${NIPSULI_DOTFILES_ROOT}/dotfiles/ghostty_config" || status=1
+      nipsulidotfiles::doctor_symlink "${HOME}/.tmux.conf" "${NIPSULI_DOTFILES_ROOT}/dotfiles/.tmux.conf" || status=1
+      nipsulidotfiles::doctor_symlink "${HOME}/.vimrc" "${NIPSULI_DOTFILES_ROOT}/dotfiles/.vimrc" || status=1
+      ;;
+    languages)
+      nipsulidotfiles::doctor_command uv || status=1
+      nipsulidotfiles::doctor_command fnm || status=1
+      nipsulidotfiles::doctor_command bun || status=1
+      nipsulidotfiles::doctor_command rustup || status=1
+      nipsulidotfiles::doctor_command clojure || status=1
+      nipsulidotfiles::doctor_command clj-kondo || status=1
+      ;;
+    apps)
+      nipsulidotfiles::doctor_app "Codex.app" || status=1
+      nipsulidotfiles::doctor_app "Linear.app" || status=1
+      nipsulidotfiles::doctor_app "kindaVim.app" || status=1
+      nipsulidotfiles::doctor_app "Zed.app" || status=1
+      ;;
+    mas)
+      mas account >/dev/null 2>&1 || status=1
+      nipsulidotfiles::doctor_app "Xcode.app" || status=1
+      nipsulidotfiles::doctor_app "Slack.app" || status=1
+      ;;
+    virtualization)
+      nipsulidotfiles::doctor_command docker || status=1
+      nipsulidotfiles::doctor_command colima || status=1
+      ;;
+    cloud)
+      nipsulidotfiles::doctor_command clerk || status=1
+      nipsulidotfiles::doctor_command flyctl || status=1
+      nipsulidotfiles::doctor_command tigris || status=1
+      nipsulidotfiles::doctor_command tigrisfs || status=1
+      nipsulidotfiles::doctor_command turso || status=1
+      ;;
+  esac
+
+  return "${status}"
+}
+
+nipsulidotfiles::doctor_command() {
+  if command -v "$1" >/dev/null 2>&1; then
+    nipsulidotfiles::log_success "Command found: $1"
+  else
+    nipsulidotfiles::log_error "Missing command: $1"
+    return 1
+  fi
+}
+
+nipsulidotfiles::doctor_app() {
+  if [[ -d "/Applications/$1" ]]; then
+    nipsulidotfiles::log_success "Application found: $1"
+  else
+    nipsulidotfiles::log_error "Missing application: $1"
+    return 1
+  fi
+}
+
+nipsulidotfiles::doctor_symlink() {
+  local link_path="$1"
+  local expected_target="$2"
+  local actual_target
+
+  actual_target="$(readlink "${link_path}" || true)"
+  if [[ "${actual_target}" == "${expected_target}" ]]; then
+    nipsulidotfiles::log_success "Symlink ok: ${link_path}"
+  else
+    nipsulidotfiles::log_error "Symlink mismatch: ${link_path} -> ${actual_target}"
+    return 1
+  fi
+}
+
+nipsulidotfiles::remind_manual_installations() {
+  nipsulidotfiles::log_section "Manual Steps"
+  cat <<'EOF'
+  - Log into GUI apps.
+  - Run 'colima start' before using Docker workloads.
+  - Configure Tigris credentials and mounts manually when needed.
+  - Add any newly generated GPG key to GitHub.
+EOF
 }
 
 main() {
@@ -976,16 +773,3 @@ main() {
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   main "$@"
 fi
-
-######################################
-# remind about manual installations
-####################################
-nipsulidotfiles::remind_manual_installations() {
-  nipsulidotfiles::log_section "Manual Steps Required"
-  ehco "Remember to login to all places..."
-  # nipsulidotfiles::log_warn "Remember to complete these manual steps:"
-  # echo "  - Lisp/Quicklisp setup:"
-  # echo "      sbcl --load quicklisp.lisp"
-  # echo "      (quicklisp-quickstart:install)"
-  # echo "      (exit)"
-}

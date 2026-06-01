@@ -1,11 +1,5 @@
 # apps under testing
 
-# GH notifications
-brew tap attriaayush/ghostie
-brew install ghostie
-
-# https://kindavim.app
-#
 # Better man
 brew install tlrc
 

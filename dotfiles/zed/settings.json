@@ -83,7 +83,7 @@
       "default": "allow",
     },
     "default_model": {
-      "effort": "medium",
+      "effort": "xhigh",
       "enable_thinking": true,
       "provider": "openai-subscribed",
       "model": "gpt-5.5",

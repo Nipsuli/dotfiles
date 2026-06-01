@@ -1,0 +1,9 @@
+brew "mas"
+
+mas "Microsoft Excel", id: 462058435
+mas "Microsoft To Do", id: 1274495053
+mas "Microsoft Word", id: 462054704
+mas "Slack", id: 803453959
+mas "Spark", id: 1176895641
+mas "WhatsApp", id: 310633997
+mas "Xcode", id: 497799835

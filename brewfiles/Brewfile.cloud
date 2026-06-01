@@ -1,0 +1,10 @@
+tap "clerk/stable"
+tap "tigrisdata/tap"
+tap "tursodatabase/tap"
+
+brew "clerk"
+brew "flyctl"
+brew "tigrisdata/tap/tigris"
+brew "tursodatabase/tap/turso"
+
+cask "macfuse"
