@@ -490,10 +490,10 @@ nipsulidotfiles::setup_keybindings() {
   mkdir -p "${HOME}/Library/KeyBindings"
   cat > "${HOME}/Library/KeyBindings/DefaultKeyBinding.dict" <<'EOF'
 {
-    "~a" = "(insertText:, \"ä\")";
-    "~o" = "(insertText:, \"ö\")";
-    "~A" = "(insertText:, \"Ä\")";
-    "~O" = "(insertText:, \"Ö\")";
+    "~a" = (insertText:, "ä");
+    "~o" = (insertText:, "ö");
+    "~A" = (insertText:, "Ä");
+    "~O" = (insertText:, "Ö");
 }
 EOF
 }
