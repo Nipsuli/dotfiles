@@ -149,7 +149,7 @@ nipsulidotfiles::install_profile() {
   nipsulidotfiles::log_section "Installing ${profile}"
 
   if [[ "${profile}" == "mas" ]]; then
-    nipsulidotfiles::ensure_mas_login
+    nipsulidotfiles::ensure_mas_available
   fi
 
   HOMEBREW_NO_AUTO_UPDATE=1 brew bundle install --file "${brewfile}"
@@ -247,7 +247,8 @@ EOF
       ;;
     mas)
       cat <<'EOF'
-  - verify the App Store account is available before mas installs
+  - verify the App Store CLI is available before mas installs
+  - App Store installs may prompt if the account needs attention
 EOF
       ;;
     virtualization)
@@ -731,19 +732,13 @@ nipsulidotfiles::configure_apps() {
   nipsulidotfiles::log_success "App configuration complete."
 }
 
-nipsulidotfiles::ensure_mas_login() {
+nipsulidotfiles::ensure_mas_available() {
   if ! command -v mas >/dev/null 2>&1; then
     HOMEBREW_NO_AUTO_UPDATE=1 brew install mas
   fi
 
-  if mas account >/dev/null 2>&1; then
-    nipsulidotfiles::log_success "App Store CLI is authenticated."
-  else
-    nipsulidotfiles::log_warn "Log into the App Store before MAS installs continue."
-    open -a "App Store"
-    read -r -n 1 -p "Press any key after signing into the App Store..."
-    echo
-  fi
+  nipsulidotfiles::log_success "App Store CLI is installed."
+  nipsulidotfiles::log_info "mas does not expose a reliable sign-in check; installs will prompt if the App Store account needs attention."
 }
 
 nipsulidotfiles::configure_mas() {
@@ -914,7 +909,7 @@ nipsulidotfiles::doctor_profile() {
       nipsulidotfiles::doctor_app "Zed.app" || status=1
       ;;
     mas)
-      mas account >/dev/null 2>&1 || status=1
+      nipsulidotfiles::doctor_command mas || status=1
       nipsulidotfiles::doctor_app "Xcode.app" || status=1
       nipsulidotfiles::doctor_app "Slack.app" || status=1
       ;;
