@@ -727,8 +727,10 @@ nipsulidotfiles::configure_rust() {
 nipsulidotfiles::configure_apps() {
   nipsulidotfiles::log_info "Configuring GUI app dotfiles..."
   mkdir -p "${HOME}/.config/zed"
+  mkdir -p "${HOME}/.config/codebook"
   ln -sf "${NIPSULI_DOTFILES_ROOT}/dotfiles/zed/settings.json" "${HOME}/.config/zed/settings.json"
   ln -sf "${NIPSULI_DOTFILES_ROOT}/dotfiles/zed/keymap.json" "${HOME}/.config/zed/keymap.json"
+  ln -sf "${NIPSULI_DOTFILES_ROOT}/dotfiles/codebook.toml" "${HOME}/.config/codebook/codebook.toml"
   nipsulidotfiles::log_success "App configuration complete."
 }
 
@@ -907,6 +909,7 @@ nipsulidotfiles::doctor_profile() {
       nipsulidotfiles::doctor_app "Linear.app" || status=1
       nipsulidotfiles::doctor_app "kindaVim.app" || status=1
       nipsulidotfiles::doctor_app "Zed.app" || status=1
+      nipsulidotfiles::doctor_symlink "${HOME}/.config/codebook/codebook.toml" "${NIPSULI_DOTFILES_ROOT}/dotfiles/codebook.toml" || status=1
       ;;
     mas)
       nipsulidotfiles::doctor_command mas || status=1
