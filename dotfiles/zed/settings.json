@@ -75,7 +75,7 @@
     "codex-acp": {
       "default_config_options": {
         "mode": "auto",
-        "reasoning_effort": "low"
+        "reasoning_effort": "xhigh"
       },
       "type": "registry"
     },
