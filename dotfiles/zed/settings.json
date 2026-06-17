@@ -73,6 +73,10 @@
   },
   "agent_servers": {
     "codex-acp": {
+      "default_config_options": {
+        "mode": "auto",
+        "reasoning_effort": "xhigh"
+      },
       "type": "registry"
     },
     "gemini": {
@@ -125,17 +129,8 @@
       "format_on_save": "on",
     },
     "Markdown": {
-      // "formatter": {
-      //   "external": {
-      //     "command": "prettier",
-      //     "arguments": [
-      //       "--prose-wrap",
-      //       "always",
-      //       "--stdin-filepath",
-      //       "{buffer_path}",
-      //     ],
-      //   },
-      // },
+      "language_servers": ["oxfmt", "..."],
+      "formatter": { "language_server": { "name": "oxfmt" } },
       "format_on_save": "on",
     },
     "Java": {

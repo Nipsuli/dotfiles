@@ -1,0 +1,9 @@
+# Dictionaries to use for spell checking.
+dictionaries = ["en_us"]
+
+# Custom allowlist of words to ignore. Codebook also adds words here when using
+# the "Add to dictionary" code action.
+words = ["Syvain", "agentic"]
+
+# Words that should always be flagged as incorrect.
+flag_words = []
