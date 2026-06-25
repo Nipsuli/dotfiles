@@ -48,15 +48,13 @@
       "args": [],
       "projects": [
         {
-          "paths": [
-            "/Users/niko/code/syvain/syvain"
-          ]
-        }
-      ]
-    }
+          "paths": ["/Users/niko/code/syvain/syvain"],
+        },
+      ],
+    },
   ],
   "session": {
-    "trust_all_worktrees": true
+    "trust_all_worktrees": true,
   },
   "cli_default_open_behavior": "new_window",
   "project_panel": {
@@ -75,12 +73,12 @@
     "codex-acp": {
       "default_config_options": {
         "mode": "auto",
-        "reasoning_effort": "xhigh"
+        "reasoning_effort": "high",
       },
-      "type": "registry"
+      "type": "registry",
     },
     "gemini": {
-      "type": "registry"
+      "type": "registry",
     },
     "claude-acp": {
       "type": "registry",
@@ -118,6 +116,7 @@
         "ty",
         "!basedpyright",
         "!pylsp",
+        "!pyright",
         "...",
       ],
     },
@@ -199,7 +198,7 @@
   "context_servers": {
     "posthog": {
       "enabled": true,
-      "url": "https://mcp.posthog.com/mcp"
-    }
+      "url": "https://mcp.posthog.com/mcp",
+    },
   },
 }
