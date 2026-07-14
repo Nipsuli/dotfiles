@@ -664,7 +664,13 @@ nipsulidotfiles::configure_tmux() {
   nipsulidotfiles::git_clone_if_missing "https://github.com/tmux-plugins/tpm" "${HOME}/.tmux/plugins/tpm"
 
   if [[ -x "${HOME}/.tmux/plugins/tpm/bin/install_plugins" ]]; then
-    "${HOME}/.tmux/plugins/tpm/bin/install_plugins" || true
+    if ! "${HOME}/.tmux/plugins/tpm/bin/install_plugins"; then
+      nipsulidotfiles::log_error "tmux plugin installation failed."
+      return 1
+    fi
+  else
+    nipsulidotfiles::log_error "TPM plugin installer is missing."
+    return 1
   fi
 }
 
@@ -897,6 +903,10 @@ nipsulidotfiles::doctor_profile() {
       nipsulidotfiles::doctor_symlink "${HOME}/.config/ghostty/config" "${NIPSULI_DOTFILES_ROOT}/dotfiles/ghostty_config" || status=1
       nipsulidotfiles::doctor_symlink "${HOME}/.tmux.conf" "${NIPSULI_DOTFILES_ROOT}/dotfiles/.tmux.conf" || status=1
       nipsulidotfiles::doctor_symlink "${HOME}/.vimrc" "${NIPSULI_DOTFILES_ROOT}/dotfiles/.vimrc" || status=1
+      nipsulidotfiles::doctor_tmux_plugin tpm || status=1
+      nipsulidotfiles::doctor_tmux_plugin tmux-sensible || status=1
+      nipsulidotfiles::doctor_tmux_plugin tmux-resurrect || status=1
+      nipsulidotfiles::doctor_tmux_plugin tmux-continuum || status=1
       ;;
     languages)
       nipsulidotfiles::doctor_command uv || status=1
@@ -957,6 +967,17 @@ nipsulidotfiles::doctor_file() {
     nipsulidotfiles::log_success "File found: $1"
   else
     nipsulidotfiles::log_error "Missing file: $1"
+    return 1
+  fi
+}
+
+nipsulidotfiles::doctor_tmux_plugin() {
+  local plugin_path="${HOME}/.tmux/plugins/$1"
+
+  if [[ -d "${plugin_path}/.git" ]] && git -C "${plugin_path}" remote get-url origin >/dev/null 2>&1; then
+    nipsulidotfiles::log_success "tmux plugin found: $1"
+  else
+    nipsulidotfiles::log_error "Missing tmux plugin: $1"
     return 1
   fi
 }
