@@ -917,7 +917,7 @@ nipsulidotfiles::doctor_profile() {
       nipsulidotfiles::doctor_command clj-kondo || status=1
       ;;
     apps)
-      nipsulidotfiles::doctor_app "Codex.app" || status=1
+      nipsulidotfiles::doctor_app "ChatGPT.app" || status=1
       nipsulidotfiles::doctor_app "Linear.app" || status=1
       nipsulidotfiles::doctor_app "kindaVim.app" || status=1
       nipsulidotfiles::doctor_app "Zed.app" || status=1

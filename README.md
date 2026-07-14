@@ -19,7 +19,7 @@ Profiles:
 - `cli`: terminal utilities such as ripgrep, fzf, jq, git-lfs, cloc, ocrmypdf
 - `terminal`: Ghostty, tmux, Vim, Neovim, CosmicNvim
 - `languages`: uv, fnm/Node, Bun, Rust, Clojure, clj-kondo
-- `apps`: Codex CLI + GUI, CodexBar, Zed, Sublime, Raycast, browsers, work apps
+- `apps`: Codex CLI, ChatGPT GUI, CodexBar, Zed, Sublime, Raycast, browsers, work apps
 - `mas`: App Store apps including Xcode, Slack, Spark, WhatsApp, Word, Excel, To Do
 - `virtualization`: Docker CLI and Colima
 - `cloud`: flyctl, Tigris CLI, TigrisFS helper install, Turso, Clerk, macFUSE
