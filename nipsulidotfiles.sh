@@ -601,6 +601,8 @@ nipsulidotfiles::configure_fzf() {
   fzf_install="$(brew --prefix)/opt/fzf/install"
   if [[ -x "${fzf_install}" ]]; then
     "${fzf_install}" --key-bindings --completion --no-update-rc
+    # shellcheck disable=SC2016
+    nipsulidotfiles::append_to_shell_files '[[ -f "$HOME/.fzf.%SHELL_NAME%" ]] && source "$HOME/.fzf.%SHELL_NAME%"'
   fi
 }
 
