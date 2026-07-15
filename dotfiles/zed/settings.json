@@ -72,9 +72,9 @@
   "agent_servers": {
     "codex-acp": {
       "default_config_options": {
-        "fast-mode": "on",
+        "fast-mode": "off",
         "mode": "auto",
-        "reasoning_effort": "xhigh",
+        "reasoning_effort": "high",
       },
       "type": "registry",
     },
