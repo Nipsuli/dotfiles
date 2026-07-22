@@ -74,7 +74,7 @@
       "default_config_options": {
         "fast-mode": "off",
         "mode": "auto",
-        "reasoning_effort": "xhigh",
+        "reasoning_effort": "high",
       },
       "type": "registry",
     },
@@ -122,6 +122,9 @@
       ],
     },
     "SQL": {
+      "tab_size": 2,
+    },
+    "YAML": {
       "tab_size": 2,
     },
     "Clojure": {
