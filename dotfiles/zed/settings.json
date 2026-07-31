@@ -73,8 +73,8 @@
     "codex-acp": {
       "default_config_options": {
         "fast-mode": "off",
-        "mode": "auto",
-        "reasoning_effort": "high",
+        "mode": "agent-full-access",
+        "reasoning_effort": "low",
       },
       "type": "registry",
     },
