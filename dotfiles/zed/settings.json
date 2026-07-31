@@ -140,11 +140,13 @@
       "format_on_save": "off",
     },
     "TypeScript": {
+      "tab_size": 2,
       "language_servers": ["oxfmt", "oxlint", "..."],
       "formatter": { "language_server": { "name": "oxfmt" } },
       "format_on_save": "on",
     },
     "TSX": {
+      "tab_size": 2,
       "language_servers": ["oxfmt", "oxlint", "..."],
       "formatter": { "language_server": { "name": "oxfmt" } },
       "format_on_save": "on",
