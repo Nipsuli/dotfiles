@@ -48,10 +48,25 @@
       "args": [],
       "projects": [
         {
-          "paths": ["/Users/niko/code/syvain/syvain"],
-        },
+          "paths": [
+            "/Users/niko/code/syvain/syvain"
+          ]
+        }
       ],
+      "nickname": "Nipsuli M1 Pro"
     },
+    {
+      "host": "100.86.101.14",
+      "args": [],
+      "projects": [
+        {
+          "paths": [
+            "/Users/niko/code/syc041/syvain"
+          ]
+        }
+      ],
+      "nickname": "Nipsuli Mini"
+    }
   ],
   "session": {
     "trust_all_worktrees": true,
