@@ -1,4 +1,3 @@
-cask "codex"
 cask "chatgpt"
 cask "codexbar"
 cask "google-chrome"

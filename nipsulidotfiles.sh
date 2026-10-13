@@ -235,9 +235,9 @@ EOF
       ;;
     languages)
       cat <<'EOF'
-  - configure uv, fnm, Bun, Rust, Clojure, and shell hooks
-  - install Node 24 through fnm
-  - install Python 3.14 through uv
+  - install mise and link personal tool defaults from dotfiles/mise/tools.toml
+  - install Node 24, Bun, Python 3.14, uv, pnpm, and personal CLIs through mise
+  - configure mise shell activation and shims; configure Rust through rustup
 EOF
       ;;
     apps)
@@ -676,49 +676,39 @@ nipsulidotfiles::configure_tmux() {
 
 nipsulidotfiles::configure_languages() {
   nipsulidotfiles::log_info "Configuring programming language tools..."
-  nipsulidotfiles::configure_uv
-  nipsulidotfiles::configure_node
-  nipsulidotfiles::configure_bun
+  nipsulidotfiles::configure_mise
   nipsulidotfiles::configure_rust
   nipsulidotfiles::log_success "Language configuration complete."
 }
 
-nipsulidotfiles::configure_uv() {
-  # shellcheck disable=SC2016
-  nipsulidotfiles::append_to_shell_files 'eval "$(uv generate-shell-completion %SHELL_NAME%)"'
-  if command -v uv >/dev/null 2>&1; then
-    uv python install 3.14 || nipsulidotfiles::log_warn "uv Python install did not finish cleanly."
+nipsulidotfiles::configure_mise() {
+  if ! command -v mise >/dev/null 2>&1; then
+    nipsulidotfiles::log_info "Installing mise."
+    curl -fsSL https://mise.run | sh
   fi
-}
+  export PATH="${HOME}/.local/bin:${PATH}"
 
-nipsulidotfiles::configure_node() {
-  local fnm_env
-
+  mkdir -p "${HOME}/.config/mise/conf.d"
+  ln -sf "${NIPSULI_DOTFILES_ROOT}/dotfiles/mise/tools.toml" "${HOME}/.config/mise/conf.d/10-dotfiles.toml"
+  ln -sf "${NIPSULI_DOTFILES_ROOT}/dotfiles/mise/env.sh" "${HOME}/.config/mise/env.sh"
   # shellcheck disable=SC2016
-  nipsulidotfiles::append_to_shell_files 'eval "$(fnm env --use-on-cd --shell %SHELL_NAME%)"'
-
-  if command -v fnm >/dev/null 2>&1; then
-    fnm_env="$(fnm env --shell bash)"
-    eval "${fnm_env}"
-    fnm install 24
-    fnm default 24
-    corepack enable || true
-  fi
-}
-
-nipsulidotfiles::configure_bun() {
-  if ! command -v bun >/dev/null 2>&1; then
-    nipsulidotfiles::log_info "Installing Bun."
-    # shellcheck disable=SC2312
-    curl -fsSL https://bun.sh/install | bash
-  fi
-
+  nipsulidotfiles::append_to_file "${HOME}/.zprofile" '. "$HOME/.config/mise/env.sh"'
   # shellcheck disable=SC2016
-  nipsulidotfiles::append_to_file "${HOME}/.zshrc" 'export BUN_INSTALL="$HOME/.bun"'
+  nipsulidotfiles::append_to_shell_files '. "$HOME/.config/mise/env.sh"'
   # shellcheck disable=SC2016
-  nipsulidotfiles::append_to_file "${HOME}/.zshrc" 'export PATH="$BUN_INSTALL/bin:$PATH"'
-  # shellcheck disable=SC2016
-  nipsulidotfiles::append_to_file "${HOME}/.zshrc" '[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"'
+  nipsulidotfiles::append_to_shell_files 'eval "$(mise activate %SHELL_NAME%)"'
+
+  # Install personal defaults even when the caller is inside another project.
+  mise trust "${HOME}/.config/mise/conf.d/10-dotfiles.toml"
+  (cd "${HOME}" && mise install)
+  (cd "${HOME}" && mise exec node -- corepack enable yarn)
+  mise reshim
+
+  # Running apps can inherit a PATH without mise shims. Keep CLI entry points
+  # in the user bin directory and let mise select the installed versions.
+  mkdir -p "${HOME}/.local/bin"
+  ln -sf "${HOME}/.local/share/mise/shims/codex" "${HOME}/.local/bin/codex"
+  ln -sf "${HOME}/.local/share/mise/shims/claude" "${HOME}/.local/bin/claude"
 }
 
 nipsulidotfiles::configure_rust() {
@@ -910,7 +900,11 @@ nipsulidotfiles::doctor_profile() {
       ;;
     languages)
       nipsulidotfiles::doctor_command uv || status=1
-      nipsulidotfiles::doctor_command fnm || status=1
+      nipsulidotfiles::doctor_command mise || status=1
+      nipsulidotfiles::doctor_command node || status=1
+      nipsulidotfiles::doctor_command npm || status=1
+      nipsulidotfiles::doctor_command pnpm || status=1
+      nipsulidotfiles::doctor_command python || status=1
       nipsulidotfiles::doctor_command bun || status=1
       nipsulidotfiles::doctor_command rustup || status=1
       nipsulidotfiles::doctor_command clojure || status=1
