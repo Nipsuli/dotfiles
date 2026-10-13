@@ -927,7 +927,6 @@ nipsulidotfiles::doctor_profile() {
       nipsulidotfiles::doctor_command colima || status=1
       ;;
     cloud)
-      nipsulidotfiles::doctor_command clerk || status=1
       nipsulidotfiles::doctor_command flyctl || status=1
       nipsulidotfiles::doctor_command tigris || status=1
       nipsulidotfiles::doctor_command tigrisfs || status=1
