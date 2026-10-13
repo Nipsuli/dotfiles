@@ -5,10 +5,10 @@ bun = "1.4.2"
 python = "3.14"
 uv = "0.12.21"
 "npm:pnpm" = "10.21.0"
-"npm:@openai/codex" = "0.160.0"
-"npm:@anthropic-ai/claude-code" = { version = "2.1.292", allow_builds = ["@anthropic-ai/claude-code"], npm_args = "--ignore-scripts=false" }
-"npm:@opencode/cli" = { version = "2.0.25", allow_builds = ["@opencode/cli"], npm_args = "--ignore-scripts=false" }
-"npm:@o41/metrics" = "0.1.0"
+"npm:@openai/codex" = "0.162.1"
+"npm:@anthropic-ai/claude-code" = { version = "2.1.296", allow_builds = ["@anthropic-ai/claude-code"], npm_args = "--ignore-scripts=false" }
+"npm:@opencode/cli" = { version = "2.0.28", allow_builds = ["@opencode/cli"], npm_args = "--ignore-scripts=false" }
+"npm:@o41/metrics" = "0.1.4"
 "npm:@o41/artifacts" = "0.1.0"
 "npm:@fsouza/prettierd" = "0.26.1"
 "npm:prettier" = "3.6.2"
