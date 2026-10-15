@@ -22,7 +22,7 @@ Profiles:
 - `apps`: ChatGPT GUI, CodexBar, Zed, Sublime, Raycast, browsers, work apps
 - `mas`: App Store apps including Xcode, Slack, Spark, WhatsApp, Word, Excel, To Do
 - `virtualization`: Docker CLI and Colima
-- `cloud`: flyctl, Tigris CLI, TigrisFS helper install, Turso, macFUSE
+- `cloud`: flyctl, Tigris CLI, Turso
 
 Useful commands:
 
@@ -33,9 +33,8 @@ Useful commands:
 EMAIL=<your email address here> ./install_mac install core cli terminal
 ```
 
-`./install_mac` with no subcommand installs all profiles. Tigris credentials and
-bucket mounts are intentionally manual; the script only installs and checks the
-tools.
+`./install_mac` with no subcommand installs all profiles. Tigris credentials are
+intentionally manual; the script only installs and checks the tools.
 
 Stuff:
 

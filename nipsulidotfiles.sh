@@ -6,8 +6,6 @@
 set -e
 
 readonly BREW_INSTALL_SCRIPT="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
-readonly TIGRISFS_LATEST_RELEASE_URL="https://github.com/tigrisdata/tigrisfs/releases/latest"
-readonly TIGRISFS_DOWNLOAD_BASE_URL="https://github.com/tigrisdata/tigrisfs/releases/download"
 
 NIPSULI_DOTFILES_ROOT="${NIPSULI_DOTFILES_ROOT:-$(pwd)}"
 NIPSULI_BREWFILES_DIR="${NIPSULI_DOTFILES_ROOT}/brewfiles"
@@ -258,9 +256,8 @@ EOF
       ;;
     cloud)
       cat <<'EOF'
-  - install TigrisFS into ~/bin if missing
   - remove the Tigris-provided t3 shim when it points at the Tigris CLI
-  - leave Tigris credentials and mounts for manual setup
+  - leave Tigris credentials for manual setup
 EOF
       ;;
   esac
@@ -755,8 +752,7 @@ nipsulidotfiles::configure_virtualization() {
 nipsulidotfiles::configure_cloud() {
   nipsulidotfiles::log_info "Configuring cloud tools..."
   nipsulidotfiles::remove_tigris_t3_shim
-  nipsulidotfiles::install_tigrisfs
-  nipsulidotfiles::log_warn "Tigris credentials and bucket mounts are intentionally manual."
+  nipsulidotfiles::log_warn "Tigris credentials are intentionally manual."
 }
 
 nipsulidotfiles::remove_tigris_t3_shim() {
@@ -779,72 +775,6 @@ nipsulidotfiles::remove_tigris_t3_shim() {
       nipsulidotfiles::log_warn "Leaving existing t3 command alone: ${t3_path}"
       ;;
   esac
-}
-
-nipsulidotfiles::install_tigrisfs() {
-  local arch
-  local current_arch
-  local latest_url
-  local version
-  local archive_name
-  local archive_url
-  local checksum_url
-  local tmpdir
-  local expected_checksum
-  local actual_checksum
-  local binary_path
-
-  if command -v tigrisfs >/dev/null 2>&1; then
-    nipsulidotfiles::log_success "tigrisfs already installed."
-    return 0
-  fi
-
-  current_arch="$(uname -m)"
-  case "${current_arch}" in
-    arm64|aarch64)
-      arch="arm64"
-      ;;
-    x86_64|amd64)
-      arch="amd64"
-      ;;
-    *)
-      nipsulidotfiles::log_error "Unsupported architecture for tigrisfs: ${current_arch}"
-      return 1
-      ;;
-  esac
-
-  latest_url="$(curl -fsSLI -o /dev/null -w '%{url_effective}' "${TIGRISFS_LATEST_RELEASE_URL}")"
-  version="${latest_url##*/}"
-  version="${version#v}"
-  archive_name="tigrisfs_${version}_darwin_${arch}.tar.gz"
-  archive_url="${TIGRISFS_DOWNLOAD_BASE_URL}/v${version}/${archive_name}"
-  checksum_url="${TIGRISFS_DOWNLOAD_BASE_URL}/v${version}/checksums.txt"
-  tmpdir="$(mktemp -d)"
-
-  curl -fsSL "${archive_url}" -o "${tmpdir}/${archive_name}"
-  curl -fsSL "${checksum_url}" -o "${tmpdir}/checksums.txt"
-
-  expected_checksum="$(grep " ${archive_name}$" "${tmpdir}/checksums.txt" | awk '{ print $1 }')"
-  actual_checksum="$(shasum -a 256 "${tmpdir}/${archive_name}" | awk '{ print $1 }')"
-
-  if [[ -z "${expected_checksum}" ]] || [[ "${expected_checksum}" != "${actual_checksum}" ]]; then
-    nipsulidotfiles::log_error "Checksum verification failed for ${archive_name}."
-    rm -rf "${tmpdir}"
-    return 1
-  fi
-
-  tar -xzf "${tmpdir}/${archive_name}" -C "${tmpdir}"
-  binary_path="$(find "${tmpdir}" -type f -name tigrisfs | head -n 1)"
-  if [[ -z "${binary_path}" ]]; then
-    nipsulidotfiles::log_error "Could not find tigrisfs binary in archive."
-    rm -rf "${tmpdir}"
-    return 1
-  fi
-
-  mkdir -p "${HOME}/bin"
-  install -m 0755 "${binary_path}" "${HOME}/bin/tigrisfs"
-  rm -rf "${tmpdir}"
-  nipsulidotfiles::log_success "Installed tigrisfs into ${HOME}/bin/tigrisfs."
 }
 
 nipsulidotfiles::doctor_profile() {
@@ -929,7 +859,6 @@ nipsulidotfiles::doctor_profile() {
     cloud)
       nipsulidotfiles::doctor_command flyctl || status=1
       nipsulidotfiles::doctor_command tigris || status=1
-      nipsulidotfiles::doctor_command tigrisfs || status=1
       nipsulidotfiles::doctor_command turso || status=1
       ;;
   esac

@@ -4,5 +4,3 @@ tap "tursodatabase/tap"
 brew "flyctl"
 brew "tigrisdata/tap/tigris"
 brew "tursodatabase/tap/turso"
-
-cask "macfuse"
