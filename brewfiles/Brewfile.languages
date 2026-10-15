@@ -3,3 +3,4 @@ tap "clojure/tools"
 
 brew "borkdude/brew/clj-kondo"
 brew "clojure/tools/clojure"
+brew "mise"

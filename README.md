@@ -54,7 +54,8 @@ these defaults. Rust still uses rustup; Homebrew installs system utilities and
 apps. Tigris uses the Homebrew `cloud` profile instead of the old npm package
 whose `t3` alias conflicts with T3 Code.
 
-Run `./install_mac install languages` to install mise and these defaults.
+Run `./install_mac install languages` to install mise from Homebrew and these
+defaults.
 The installer adds shell activation and mise shims for login shells. For a
 migration, first remove fnm/asdf/pyenv activation and standalone Bun/pnpm PATH
 blocks from your shell startup files. Restart terminal and coding apps after

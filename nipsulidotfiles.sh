@@ -682,11 +682,11 @@ nipsulidotfiles::configure_languages() {
 }
 
 nipsulidotfiles::configure_mise() {
+  # Brewfile.languages installs mise, so it updates with the other formulas.
   if ! command -v mise >/dev/null 2>&1; then
-    nipsulidotfiles::log_info "Installing mise."
-    curl -fsSL https://mise.run | sh
+    nipsulidotfiles::log_error "mise is missing; install Brewfile.languages first."
+    return 1
   fi
-  export PATH="${HOME}/.local/bin:${PATH}"
 
   mkdir -p "${HOME}/.config/mise/conf.d"
   ln -sf "${NIPSULI_DOTFILES_ROOT}/dotfiles/mise/tools.toml" "${HOME}/.config/mise/conf.d/10-dotfiles.toml"
@@ -718,8 +718,8 @@ nipsulidotfiles::configure_rust() {
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
   fi
 
-  # shellcheck disable=SC2016
-  nipsulidotfiles::append_to_shell_files '. "$HOME/.cargo/env"'
+  # rustup's installer adds `. "$HOME/.cargo/env"` to .zshenv, .bash_profile,
+  # .bashrc, and .profile itself. Another copy in .zshrc loads it twice.
 }
 
 nipsulidotfiles::configure_apps() {
