@@ -1,14 +1,14 @@
 #!/bin/bash
 # shellcheck disable=SC2310,SC2311,SC2312,SC2249
 #######################################
-# Helper functions for the Mac setup orchestrator.
+# Helper functions for the install script.
 #######################################
 set -e
 
 readonly BREW_INSTALL_SCRIPT="https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
 
 NIPSULI_DOTFILES_ROOT="${NIPSULI_DOTFILES_ROOT:-$(pwd)}"
-NIPSULI_BREWFILES_DIR="${NIPSULI_DOTFILES_ROOT}/brewfiles"
+NIPSULI_PACKAGES="${NIPSULI_DOTFILES_ROOT}/packages/unix.tsv"
 
 readonly COLOR_RESET='\033[0m'
 readonly COLOR_GREEN='\033[0;32m'
@@ -89,21 +89,38 @@ nipsulidotfiles::git_clone_if_missing() {
   fi
 }
 
-nipsulidotfiles::require_known_profile() {
-  case "$1" in
-    core|cli|terminal|languages|apps|mas|virtualization|cloud)
-      return 0
-      ;;
-    *)
-      nipsulidotfiles::log_error "Unknown profile: $1"
-      exit 1
-      ;;
-  esac
+nipsulidotfiles::is_macos() {
+  [[ "$(uname -s)" == "Darwin" ]]
 }
 
-nipsulidotfiles::brewfile_for_profile() {
-  nipsulidotfiles::require_known_profile "$1"
-  printf '%s/Brewfile.%s\n' "${NIPSULI_BREWFILES_DIR}" "$1"
+nipsulidotfiles::is_arch() {
+  command -v pacman >/dev/null 2>&1
+}
+
+#######################################
+# Packages: packages/unix.tsv, through Homebrew on macOS and pacman on Arch.
+#######################################
+
+# Print packages/unix.tsv as a Brewfile, tapping each formula's tap.
+nipsulidotfiles::unix_brewfile() {
+  awk -F'\t' '
+    /^#/ || NF < 2 || $1 == "-" { next }
+    {
+      if (split($1, part, "/") == 3 && !seen[part[1] "/" part[2]]++) {
+        taps = taps "tap \"" part[1] "/" part[2] "\"\n"
+      }
+      brews = brews "brew \"" $1 "\"\n"
+    }
+    END { printf "%s%s", taps, brews }
+  ' "${NIPSULI_PACKAGES}"
+}
+
+nipsulidotfiles::arch_packages() {
+  awk -F'\t' '/^#/ || NF < 2 || $2 == "-" || $2 ~ /^aur:/ { next } { print $2 }' "${NIPSULI_PACKAGES}"
+}
+
+nipsulidotfiles::aur_packages() {
+  awk -F'\t' '!/^#/ && $2 ~ /^aur:/ { sub(/^aur:/, "", $2); print $2 }' "${NIPSULI_PACKAGES}"
 }
 
 nipsulidotfiles::ensure_xcode_commandline_tools() {
@@ -133,147 +150,122 @@ nipsulidotfiles::install_homebrew() {
   fi
 }
 
-nipsulidotfiles::bootstrap_package_managers() {
-  nipsulidotfiles::log_section "Bootstrapping Package Managers"
-  nipsulidotfiles::ensure_xcode_commandline_tools
-  nipsulidotfiles::install_homebrew
+# Homebrew refuses formulas from taps outside its own until they are trusted.
+nipsulidotfiles::trust_taps() {
+  local tap
+
+  while IFS= read -r tap; do
+    brew trust --tap "${tap}"
+  done < <(sed -n 's/^tap "\([^"]*\)".*/\1/p' "$1")
 }
 
-nipsulidotfiles::install_profile() {
-  local profile="$1"
+nipsulidotfiles::install_packages() {
   local brewfile
+  local missing
+  local status=0
 
-  brewfile="$(nipsulidotfiles::brewfile_for_profile "${profile}")"
-  nipsulidotfiles::log_section "Installing ${profile}"
+  nipsulidotfiles::log_section "Installing packages"
 
-  if [[ "${profile}" == "mas" ]]; then
-    nipsulidotfiles::ensure_mas_available
+  if nipsulidotfiles::is_macos; then
+    nipsulidotfiles::ensure_xcode_commandline_tools
+    nipsulidotfiles::install_homebrew
+    brewfile="$(mktemp)"
+    nipsulidotfiles::unix_brewfile > "${brewfile}"
+    nipsulidotfiles::trust_taps "${brewfile}"
+    # Upgrades are a separate step, so installing never changes versions.
+    HOMEBREW_NO_AUTO_UPDATE=1 brew bundle install --no-upgrade --file "${brewfile}" || status=1
+    rm -f "${brewfile}"
+    return "${status}"
   fi
 
-  HOMEBREW_NO_AUTO_UPDATE=1 brew bundle install --file "${brewfile}"
-  nipsulidotfiles::configure_profile "${profile}"
-}
-
-nipsulidotfiles::dry_run_profile() {
-  local profile="$1"
-  local brewfile
-
-  brewfile="$(nipsulidotfiles::brewfile_for_profile "${profile}")"
-  nipsulidotfiles::log_section "Dry run ${profile}"
-  nipsulidotfiles::log_info "Checking ${brewfile}"
-
-  if HOMEBREW_NO_AUTO_UPDATE=1 brew bundle check --file "${brewfile}"; then
-    nipsulidotfiles::log_success "All Brewfile entries for ${profile} are installed."
-  else
-    nipsulidotfiles::log_warn "Missing Brewfile entries listed above."
+  if ! nipsulidotfiles::is_arch; then
+    nipsulidotfiles::log_error "Only macOS (Homebrew) and Arch Linux (pacman) are supported."
+    return 1
   fi
 
-  nipsulidotfiles::print_profile_config_actions "${profile}"
+  missing="$(nipsulidotfiles::arch_packages | xargs pacman -T || true)"
+  if [[ -n "${missing}" ]]; then
+    # shellcheck disable=SC2086 # one package name per word
+    sudo pacman -S --needed ${missing}
+  fi
+  missing="$(nipsulidotfiles::missing_aur_packages)"
+  if [[ -n "${missing}" ]]; then
+    if command -v yay >/dev/null 2>&1; then
+      # shellcheck disable=SC2086 # one package name per word
+      yay -S --needed ${missing}
+    else
+      nipsulidotfiles::log_error "Install these AUR packages: ${missing}"
+      return 1
+    fi
+  fi
 }
 
-nipsulidotfiles::list_profile() {
-  local profile="$1"
+nipsulidotfiles::missing_aur_packages() {
+  local package
+
+  while IFS= read -r package; do
+    pacman -Q "${package}" >/dev/null 2>&1 || printf '%s ' "${package}"
+  done < <(nipsulidotfiles::aur_packages)
+}
+
+nipsulidotfiles::doctor_packages() {
   local brewfile
+  local missing
+  local status=0
 
-  brewfile="$(nipsulidotfiles::brewfile_for_profile "${profile}")"
-  nipsulidotfiles::log_section "Listing ${profile}"
-  HOMEBREW_NO_AUTO_UPDATE=1 brew bundle list --all --file "${brewfile}"
-  nipsulidotfiles::print_profile_config_actions "${profile}"
+  nipsulidotfiles::log_section "Doctor packages"
+
+  if nipsulidotfiles::is_macos; then
+    if ! command -v brew >/dev/null 2>&1; then
+      nipsulidotfiles::log_error "Homebrew is not installed."
+      return 1
+    fi
+    brewfile="$(mktemp)"
+    nipsulidotfiles::unix_brewfile > "${brewfile}"
+    if HOMEBREW_NO_AUTO_UPDATE=1 brew bundle check --no-upgrade --verbose --file "${brewfile}"; then
+      nipsulidotfiles::log_success "All packages are installed."
+    else
+      status=1
+    fi
+    rm -f "${brewfile}"
+    return "${status}"
+  fi
+
+  missing="$(nipsulidotfiles::arch_packages | xargs pacman -T || true)"
+  missing="${missing//$'\n'/ }$(nipsulidotfiles::missing_aur_packages)"
+  if [[ -n "${missing// /}" ]]; then
+    nipsulidotfiles::log_error "Missing packages: ${missing}"
+    return 1
+  fi
+  nipsulidotfiles::log_success "All packages are installed."
 }
 
-nipsulidotfiles::configure_profile() {
-  case "$1" in
-    core)
-      nipsulidotfiles::configure_core
-      ;;
-    cli)
-      nipsulidotfiles::configure_cli
-      ;;
-    terminal)
-      nipsulidotfiles::configure_terminal
-      ;;
-    languages)
-      nipsulidotfiles::configure_languages
-      ;;
-    apps)
-      nipsulidotfiles::configure_apps
-      ;;
-    mas)
-      nipsulidotfiles::configure_mas
-      ;;
-    virtualization)
-      nipsulidotfiles::configure_virtualization
-      ;;
-    cloud)
-      nipsulidotfiles::configure_cloud
-      ;;
-  esac
-}
+#######################################
+# Config: shell, git, editors, mise, and app settings.
+#######################################
 
-nipsulidotfiles::print_profile_config_actions() {
-  nipsulidotfiles::log_info "Post-install configuration actions:"
-  case "$1" in
-    core)
-      cat <<'EOF'
-  - create SSH keys before GitHub auth, then configure EMAIL, shell profile, starship, direnv, git, GPG, keybindings, and macOS defaults
-EOF
-      ;;
-    cli)
-      cat <<'EOF'
-  - link helper scripts into ~/bin and install cht.sh
-  - enable fzf shell completions/keybindings without changing shell rc files directly
-EOF
-      ;;
-    terminal)
-      cat <<'EOF'
-  - link Ghostty, Vim, tmux, and CosmicNvim config
-  - install vim-plug and tmux plugins
-  - bootstrap CosmicNvim headlessly
-EOF
-      ;;
-    languages)
-      cat <<'EOF'
-  - install mise and link personal tool defaults from dotfiles/mise/tools.toml
-  - install Node 24, Bun, Python 3.14, uv, pnpm, and personal CLIs through mise
-  - configure mise shell activation and shims; configure Rust through rustup
-EOF
-      ;;
-    apps)
-      cat <<'EOF'
-  - link Zed settings and keymap
-EOF
-      ;;
-    mas)
-      cat <<'EOF'
-  - verify the App Store CLI is available before mas installs
-  - App Store installs may prompt if the account needs attention
-EOF
-      ;;
-    virtualization)
-      cat <<'EOF'
-  - verify Docker CLI and Colima are present
-EOF
-      ;;
-    cloud)
-      cat <<'EOF'
-  - remove the Tigris-provided t3 shim when it points at the Tigris CLI
-  - leave Tigris credentials for manual setup
-EOF
-      ;;
-  esac
-}
-
-nipsulidotfiles::configure_core() {
-  nipsulidotfiles::log_info "Configuring core system settings..."
+nipsulidotfiles::configure() {
+  nipsulidotfiles::log_section "Configuring"
   nipsulidotfiles::setup_ssh
   nipsulidotfiles::setup_basic_env
   nipsulidotfiles::link_shell_profile
   nipsulidotfiles::configure_console_styles
   nipsulidotfiles::configure_direnv
   nipsulidotfiles::setup_git
-  nipsulidotfiles::setup_keybindings
-  nipsulidotfiles::configure_system_preferences
-  nipsulidotfiles::log_success "Core configuration complete."
+  if nipsulidotfiles::is_macos; then
+    nipsulidotfiles::setup_keybindings
+    nipsulidotfiles::configure_system_preferences
+  fi
+  nipsulidotfiles::configure_fzf
+  nipsulidotfiles::install_helper_scripts
+  nipsulidotfiles::configure_ghostty
+  nipsulidotfiles::configure_vim
+  nipsulidotfiles::configure_neovim
+  nipsulidotfiles::configure_tmux
+  nipsulidotfiles::configure_mise
+  nipsulidotfiles::configure_rust
+  nipsulidotfiles::configure_apps
+  nipsulidotfiles::log_success "Configuration complete."
 }
 
 nipsulidotfiles::setup_basic_env() {
@@ -381,39 +373,29 @@ nipsulidotfiles::ssh_config_has_host() {
 }
 
 nipsulidotfiles::setup_git() {
-  local keyid
-
   nipsulidotfiles::check_email_var
   git config --global user.email "${EMAIL}"
   git config --global pull.rebase false
+  nipsulidotfiles::configure_commit_signing
 
   if command -v gh >/dev/null 2>&1; then
     nipsulidotfiles::setup_github_cli_auth
   fi
+}
 
-  if command -v gpg >/dev/null 2>&1; then
-    keyid="$(gpg --list-secret-keys --with-colons "${EMAIL}" 2>/dev/null \
-      | awk -F: '/^sec:/ { print $5; exit }' || true)"
+# Sign commits with the machine's SSH key; GitHub verifies it as a signing key.
+nipsulidotfiles::configure_commit_signing() {
+  local key_path="${HOME}/.ssh/id_ed25519"
+  local signers="${HOME}/.ssh/allowed_signers"
+  local public_key
 
-    if [[ -z "${keyid}" ]]; then
-      nipsulidotfiles::log_info "Generating GPG key for ${EMAIL}."
-      gpg --quick-generate-key "<${EMAIL}>"
-      keyid="$(gpg --list-secret-keys --with-colons "${EMAIL}" \
-        | awk -F: '/^sec:/ { print $5; exit }' || true)"
-      if [[ -n "${keyid}" ]]; then
-        gpg --export -a "${keyid}" | pbcopy || true
-        nipsulidotfiles::log_warn "New GPG public key copied to clipboard."
-        open "https://github.com/settings/gpg/new" || \
-          nipsulidotfiles::log_warn "Open https://github.com/settings/gpg/new manually."
-        read -r -p "Press Enter after adding the new GPG key to GitHub..."
-      fi
-    fi
-
-    if [[ -n "${keyid}" ]]; then
-      git config --global user.signingkey "${keyid}"
-      git config --global commit.gpgsign true
-    fi
-  fi
+  public_key="$(awk 'NR == 1 { print $1 " " $2 }' "${key_path}.pub")"
+  git config --global gpg.format ssh
+  git config --global user.signingkey "${key_path}"
+  git config --global commit.gpgsign true
+  # Lets `git log --show-signature` verify this machine's commits locally.
+  git config --global gpg.ssh.allowedSignersFile "${signers}"
+  nipsulidotfiles::append_to_file "${signers}" "${EMAIL} namespaces=\"git\" ${public_key}"
 }
 
 nipsulidotfiles::setup_github_cli_auth() {
@@ -424,15 +406,25 @@ nipsulidotfiles::setup_github_cli_auth() {
     gh auth login --hostname github.com --git-protocol ssh
   fi
 
-  nipsulidotfiles::configure_github_ssh_key
+  gh config set git_protocol ssh --host github.com
+  nipsulidotfiles::ensure_github_ssh_key authentication
+  nipsulidotfiles::ensure_github_ssh_key signing
 }
 
-nipsulidotfiles::configure_github_ssh_key() {
+# Upload ~/.ssh/id_ed25519.pub to GitHub as an authentication or signing key.
+nipsulidotfiles::ensure_github_ssh_key() {
+  local type="$1"
   local key_path="${HOME}/.ssh/id_ed25519.pub"
+  local endpoint
+  local scope
   local key_value
   local remote_keys
+  local title
 
-  gh config set git_protocol ssh --host github.com
+  case "${type}" in
+    authentication) endpoint="user/keys" scope="admin:public_key" ;;
+    signing) endpoint="user/ssh_signing_keys" scope="admin:ssh_signing_key" ;;
+  esac
 
   if [[ ! -f "${key_path}" ]]; then
     nipsulidotfiles::log_error "Missing GitHub SSH public key: ${key_path}"
@@ -445,41 +437,24 @@ nipsulidotfiles::configure_github_ssh_key() {
     return 1
   fi
 
-  if ! remote_keys="$(gh api user/keys --jq '.[].key' 2>/dev/null)"; then
-    nipsulidotfiles::log_warn "Refreshing GitHub CLI SSH-key scopes."
-    gh auth refresh -h github.com -s read:public_key,admin:public_key
-    remote_keys="$(gh api user/keys --jq '.[].key')"
+  if ! remote_keys="$(gh api "${endpoint}" --jq '.[].key' 2>/dev/null)"; then
+    nipsulidotfiles::log_warn "Adding the ${scope} scope to the GitHub CLI."
+    gh auth refresh -h github.com -s "${scope}"
+    remote_keys="$(gh api "${endpoint}" --jq '.[].key')"
   fi
 
   if printf '%s\n' "${remote_keys}" | grep -qxF "${key_value}"; then
-    nipsulidotfiles::log_success "GitHub already has the default SSH key."
+    nipsulidotfiles::log_success "GitHub already has the ${type} SSH key."
     return 0
   fi
 
-  nipsulidotfiles::add_github_ssh_key "${key_path}"
-}
-
-nipsulidotfiles::add_github_ssh_key() {
-  local key_path="$1"
-  local host_name
-  local title
-
-  host_name="$(hostname 2>/dev/null || true)"
-  host_name="${host_name%%.*}"
-  if [[ -z "${host_name}" ]]; then
-    host_name="mac"
+  title="$(hostname -s) id_ed25519"
+  if ! gh ssh-key add "${key_path}" --type "${type}" --title "${title}"; then
+    nipsulidotfiles::log_warn "Adding the ${scope} scope to the GitHub CLI."
+    gh auth refresh -h github.com -s "${scope}"
+    gh ssh-key add "${key_path}" --type "${type}" --title "${title}"
   fi
-  title="${host_name} id_ed25519"
-
-  if gh ssh-key add "${key_path}" --title "${title}"; then
-    nipsulidotfiles::log_success "Uploaded GitHub SSH key: ${title}"
-    return 0
-  fi
-
-  nipsulidotfiles::log_warn "Refreshing GitHub CLI SSH-key upload scope."
-  gh auth refresh -h github.com -s admin:public_key
-  gh ssh-key add "${key_path}" --title "${title}"
-  nipsulidotfiles::log_success "Uploaded GitHub SSH key: ${title}"
+  nipsulidotfiles::log_success "Uploaded GitHub ${type} key: ${title}"
 }
 
 nipsulidotfiles::setup_keybindings() {
@@ -585,16 +560,10 @@ nipsulidotfiles::keyboard_modifier_mapping_keys() {
   '
 }
 
-nipsulidotfiles::configure_cli() {
-  nipsulidotfiles::log_info "Configuring CLI helpers..."
-  nipsulidotfiles::configure_fzf
-  nipsulidotfiles::install_helper_scripts
-  nipsulidotfiles::log_success "CLI configuration complete."
-}
-
 nipsulidotfiles::configure_fzf() {
   local fzf_install
 
+  command -v brew >/dev/null 2>&1 || return 0
   fzf_install="$(brew --prefix)/opt/fzf/install"
   if [[ -x "${fzf_install}" ]]; then
     "${fzf_install}" --key-bindings --completion --no-update-rc
@@ -615,15 +584,6 @@ nipsulidotfiles::install_helper_scripts() {
 
   curl -fsSL https://cht.sh/:cht.sh > "${HOME}/bin/cht.sh"
   chmod +x "${HOME}/bin/cht.sh"
-}
-
-nipsulidotfiles::configure_terminal() {
-  nipsulidotfiles::log_info "Configuring terminal/editor stack..."
-  nipsulidotfiles::configure_ghostty
-  nipsulidotfiles::configure_vim
-  nipsulidotfiles::configure_neovim
-  nipsulidotfiles::configure_tmux
-  nipsulidotfiles::log_success "Terminal configuration complete."
 }
 
 nipsulidotfiles::configure_ghostty() {
@@ -671,17 +631,10 @@ nipsulidotfiles::configure_tmux() {
   fi
 }
 
-nipsulidotfiles::configure_languages() {
-  nipsulidotfiles::log_info "Configuring programming language tools..."
-  nipsulidotfiles::configure_mise
-  nipsulidotfiles::configure_rust
-  nipsulidotfiles::log_success "Language configuration complete."
-}
-
 nipsulidotfiles::configure_mise() {
-  # Brewfile.languages installs mise, so it updates with the other formulas.
+  # packages/unix.tsv installs mise, so it updates with the other packages.
   if ! command -v mise >/dev/null 2>&1; then
-    nipsulidotfiles::log_error "mise is missing; install Brewfile.languages first."
+    nipsulidotfiles::log_error "mise is missing; run ./install packages first."
     return 1
   fi
 
@@ -720,148 +673,40 @@ nipsulidotfiles::configure_rust() {
 }
 
 nipsulidotfiles::configure_apps() {
-  nipsulidotfiles::log_info "Configuring GUI app dotfiles..."
   mkdir -p "${HOME}/.config/zed"
   mkdir -p "${HOME}/.config/codebook"
   ln -sf "${NIPSULI_DOTFILES_ROOT}/dotfiles/zed/settings.json" "${HOME}/.config/zed/settings.json"
   ln -sf "${NIPSULI_DOTFILES_ROOT}/dotfiles/zed/keymap.json" "${HOME}/.config/zed/keymap.json"
   ln -sf "${NIPSULI_DOTFILES_ROOT}/dotfiles/codebook.toml" "${HOME}/.config/codebook/codebook.toml"
-  nipsulidotfiles::log_success "App configuration complete."
 }
 
-nipsulidotfiles::ensure_mas_available() {
-  if ! command -v mas >/dev/null 2>&1; then
-    HOMEBREW_NO_AUTO_UPDATE=1 brew install mas
-  fi
-
-  nipsulidotfiles::log_success "App Store CLI is installed."
-  nipsulidotfiles::log_info "mas does not expose a reliable sign-in check; installs will prompt if the App Store account needs attention."
-}
-
-nipsulidotfiles::configure_mas() {
-  nipsulidotfiles::log_success "MAS apps installed. Xcode is included for the full GUI app."
-}
-
-nipsulidotfiles::configure_virtualization() {
-  nipsulidotfiles::log_info "Configuring virtualization tools..."
-  if command -v colima >/dev/null 2>&1; then
-    nipsulidotfiles::log_warn "Run 'colima start' when you want to start the Docker runtime."
-  fi
-}
-
-nipsulidotfiles::configure_cloud() {
-  nipsulidotfiles::log_info "Configuring cloud tools..."
-  nipsulidotfiles::remove_tigris_t3_shim
-  nipsulidotfiles::log_warn "Tigris credentials are intentionally manual."
-}
-
-nipsulidotfiles::remove_tigris_t3_shim() {
-  local t3_path
-  local t3_target
-
-  if ! command -v t3 >/dev/null 2>&1; then
-    return 0
-  fi
-
-  t3_path="$(command -v t3)"
-  t3_target="$(readlink "${t3_path}" || true)"
-
-  case "${t3_path} ${t3_target}" in
-    *tigris*|*Tigris*)
-      nipsulidotfiles::log_warn "Removing Tigris-provided t3 shim at ${t3_path}."
-      rm -f "${t3_path}"
-      ;;
-    *)
-      nipsulidotfiles::log_warn "Leaving existing t3 command alone: ${t3_path}"
-      ;;
-  esac
-}
-
-nipsulidotfiles::doctor_profile() {
-  local profile="$1"
+nipsulidotfiles::doctor_config() {
+  local root="${NIPSULI_DOTFILES_ROOT}/dotfiles"
+  local command
   local status=0
-  local brewfile
 
-  brewfile="$(nipsulidotfiles::brewfile_for_profile "${profile}")"
-  nipsulidotfiles::log_section "Doctor ${profile}"
+  nipsulidotfiles::log_section "Doctor config"
 
-  if command -v brew >/dev/null 2>&1; then
-    if HOMEBREW_NO_AUTO_UPDATE=1 brew bundle check --file "${brewfile}"; then
-      nipsulidotfiles::log_success "Brewfile ${profile} is satisfied."
-    else
-      status=1
-    fi
-  else
-    nipsulidotfiles::log_error "Homebrew is not installed."
-    status=1
-  fi
-
-  case "${profile}" in
-    core)
-      nipsulidotfiles::doctor_command gh || status=1
-      nipsulidotfiles::doctor_command mas || status=1
-      nipsulidotfiles::doctor_command starship || status=1
-      nipsulidotfiles::doctor_file "${HOME}/.ssh/id_ed25519" || status=1
-      nipsulidotfiles::doctor_file "${HOME}/.ssh/id_ed25519.pub" || status=1
-      nipsulidotfiles::doctor_file "${HOME}/.ssh/id_ed25519_exe_dev" || status=1
-      nipsulidotfiles::doctor_file "${HOME}/.ssh/id_ed25519_exe_dev.pub" || status=1
-      nipsulidotfiles::doctor_exe_dev_ssh_config || status=1
-      xcode-select -p >/dev/null 2>&1 || status=1
-      ;;
-    cli)
-      nipsulidotfiles::doctor_command rg || status=1
-      nipsulidotfiles::doctor_command ag || status=1
-      nipsulidotfiles::doctor_command fzf || status=1
-      nipsulidotfiles::doctor_command jq || status=1
-      nipsulidotfiles::doctor_command ocrmypdf || status=1
-      ;;
-    terminal)
-      nipsulidotfiles::doctor_command ghostty || status=1
-      nipsulidotfiles::doctor_command tmux || status=1
-      nipsulidotfiles::doctor_command vim || status=1
-      nipsulidotfiles::doctor_command nvim || status=1
-      nipsulidotfiles::doctor_symlink "${HOME}/.config/ghostty/config" "${NIPSULI_DOTFILES_ROOT}/dotfiles/ghostty_config" || status=1
-      nipsulidotfiles::doctor_symlink "${HOME}/.tmux.conf" "${NIPSULI_DOTFILES_ROOT}/dotfiles/.tmux.conf" || status=1
-      nipsulidotfiles::doctor_symlink "${HOME}/.vimrc" "${NIPSULI_DOTFILES_ROOT}/dotfiles/.vimrc" || status=1
-      nipsulidotfiles::doctor_tmux_plugin tpm || status=1
-      nipsulidotfiles::doctor_tmux_plugin tmux-sensible || status=1
-      nipsulidotfiles::doctor_tmux_plugin tmux-resurrect || status=1
-      nipsulidotfiles::doctor_tmux_plugin tmux-continuum || status=1
-      ;;
-    languages)
-      nipsulidotfiles::doctor_command uv || status=1
-      nipsulidotfiles::doctor_command mise || status=1
-      nipsulidotfiles::doctor_command node || status=1
-      nipsulidotfiles::doctor_command npm || status=1
-      nipsulidotfiles::doctor_command pnpm || status=1
-      nipsulidotfiles::doctor_command python || status=1
-      nipsulidotfiles::doctor_command bun || status=1
-      nipsulidotfiles::doctor_command rustup || status=1
-      nipsulidotfiles::doctor_command clojure || status=1
-      nipsulidotfiles::doctor_command clj-kondo || status=1
-      ;;
-    apps)
-      nipsulidotfiles::doctor_app "ChatGPT.app" || status=1
-      nipsulidotfiles::doctor_app "Linear.app" || status=1
-      nipsulidotfiles::doctor_app "kindaVim.app" || status=1
-      nipsulidotfiles::doctor_app "Zed.app" || status=1
-      nipsulidotfiles::doctor_symlink "${HOME}/.config/codebook/codebook.toml" "${NIPSULI_DOTFILES_ROOT}/dotfiles/codebook.toml" || status=1
-      ;;
-    mas)
-      nipsulidotfiles::doctor_command mas || status=1
-      nipsulidotfiles::doctor_app "Xcode.app" || status=1
-      nipsulidotfiles::doctor_app "Slack.app" || status=1
-      ;;
-    virtualization)
-      nipsulidotfiles::doctor_command docker || status=1
-      nipsulidotfiles::doctor_command colima || status=1
-      ;;
-    cloud)
-      nipsulidotfiles::doctor_command flyctl || status=1
-      nipsulidotfiles::doctor_command tigris || status=1
-      nipsulidotfiles::doctor_command turso || status=1
-      ;;
-  esac
+  for command in mise node npm pnpm python uv bun go rustup; do
+    nipsulidotfiles::doctor_command "${command}" || status=1
+  done
+  nipsulidotfiles::doctor_file "${HOME}/.ssh/id_ed25519" || status=1
+  nipsulidotfiles::doctor_file "${HOME}/.ssh/id_ed25519.pub" || status=1
+  nipsulidotfiles::doctor_file "${HOME}/.ssh/id_ed25519_exe_dev" || status=1
+  nipsulidotfiles::doctor_file "${HOME}/.ssh/id_ed25519_exe_dev.pub" || status=1
+  nipsulidotfiles::doctor_exe_dev_ssh_config || status=1
+  nipsulidotfiles::doctor_commit_signing || status=1
+  nipsulidotfiles::doctor_symlink "${HOME}/.nipsuli_profile" "${root}/.nipsuli_profile" || status=1
+  nipsulidotfiles::doctor_symlink "${HOME}/.config/ghostty/config" "${root}/ghostty_config" || status=1
+  nipsulidotfiles::doctor_symlink "${HOME}/.tmux.conf" "${root}/.tmux.conf" || status=1
+  nipsulidotfiles::doctor_symlink "${HOME}/.vimrc" "${root}/.vimrc" || status=1
+  nipsulidotfiles::doctor_symlink "${HOME}/.config/mise/conf.d/10-dotfiles.toml" "${root}/mise/tools.toml" || status=1
+  nipsulidotfiles::doctor_symlink "${HOME}/.config/zed/settings.json" "${root}/zed/settings.json" || status=1
+  nipsulidotfiles::doctor_symlink "${HOME}/.config/codebook/codebook.toml" "${root}/codebook.toml" || status=1
+  nipsulidotfiles::doctor_tmux_plugin tpm || status=1
+  nipsulidotfiles::doctor_tmux_plugin tmux-sensible || status=1
+  nipsulidotfiles::doctor_tmux_plugin tmux-resurrect || status=1
+  nipsulidotfiles::doctor_tmux_plugin tmux-continuum || status=1
 
   return "${status}"
 }
@@ -875,20 +720,21 @@ nipsulidotfiles::doctor_command() {
   fi
 }
 
-nipsulidotfiles::doctor_app() {
-  if [[ -d "/Applications/$1" ]]; then
-    nipsulidotfiles::log_success "Application found: $1"
-  else
-    nipsulidotfiles::log_error "Missing application: $1"
-    return 1
-  fi
-}
-
 nipsulidotfiles::doctor_file() {
   if [[ -f "$1" ]]; then
     nipsulidotfiles::log_success "File found: $1"
   else
     nipsulidotfiles::log_error "Missing file: $1"
+    return 1
+  fi
+}
+
+nipsulidotfiles::doctor_commit_signing() {
+  if [[ "$(git config --global gpg.format)" == "ssh" ]] && \
+    [[ "$(git config --global commit.gpgsign)" == "true" ]]; then
+    nipsulidotfiles::log_success "Commits are signed with SSH."
+  else
+    nipsulidotfiles::log_error "Commits are not signed with SSH; run ./install config."
     return 1
   fi
 }
@@ -929,16 +775,6 @@ nipsulidotfiles::doctor_symlink() {
     nipsulidotfiles::log_error "Symlink mismatch: ${link_path} -> ${actual_target}"
     return 1
   fi
-}
-
-nipsulidotfiles::remind_manual_installations() {
-  nipsulidotfiles::log_section "Manual Steps"
-  cat <<'EOF'
-  - Log into GUI apps.
-  - Run 'colima start' before using Docker workloads.
-  - Configure Tigris credentials and mounts manually when needed.
-  - Add any newly generated GPG key to GitHub.
-EOF
 }
 
 main() {

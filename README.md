@@ -1,60 +1,59 @@
 # dotfiles
 
-My personal dotfiles + computer (Mac) setup scripts. Feel free to take a look
-and copy stuff you find suitable. I'm also open for suggestions for improving
-this setup!
+My personal dotfiles and the command-line tools every machine of mine needs.
+Feel free to take a look and copy stuff you find suitable. I'm also open for
+suggestions for improving this setup!
 
-How to install the default setup:
+How to install:
 
 - git clone this repo
-- `EMAIL=<your email address here> ./install_mac`
+- `EMAIL=<your email address here> ./install`
 
-The installer is split into profiles backed by curated Brewfiles. Packages live
-in `brewfiles/Brewfile.*`; shell links, editor setup, language installers, and
-other post-install configuration live in `nipsulidotfiles.sh`.
+The installer works on macOS, through Homebrew, and on Arch Linux, through
+pacman and the AUR. It has two parts:
 
-Profiles:
+- `./install packages` installs the tools in `packages/unix.tsv`: shell
+  helpers, editors, linters, Clojure, and a native build toolchain.
+- `./install config` links the config files and sets up the shell, SSH keys,
+  git commit signing, mise, Rust, Neovim, tmux, Ghostty, and Zed. On macOS it
+  also sets the system defaults and keybindings.
 
-- `core`: Homebrew, App Store CLI, GitHub CLI, GPG, shell basics, fonts, starship
-- `cli`: terminal utilities such as ripgrep, fzf, jq, git-lfs, cloc, ocrmypdf
-- `terminal`: Ghostty, tmux, Vim, Neovim, CosmicNvim
-- `languages`: mise, Node, Bun, Python, uv, pnpm, personal CLIs, Rust, Clojure, clj-kondo
-- `apps`: ChatGPT GUI, CodexBar, Zed, Sublime, Raycast, browsers, work apps
-- `mas`: App Store apps including Xcode, Slack, Spark, WhatsApp, Word, Excel, To Do
-- `virtualization`: Docker CLI and Colima
-- `cloud`: flyctl, Tigris CLI, Turso
+`./install` runs both; `./install doctor` checks both. Installing never
+upgrades a package; run `brew upgrade` or `pacman -Syu` for that.
 
-Useful commands:
-
-```sh
-./install_mac list
-./install_mac dry-run apps cloud
-./install_mac doctor terminal languages
-EMAIL=<your email address here> ./install_mac install core cli terminal
-```
-
-`./install_mac` with no subcommand installs all profiles. Tigris credentials are
-intentionally manual; the script only installs and checks the tools.
+GUI apps, App Store apps, and per-machine packages are not here. My private
+fleet repository installs, audits, and updates those on each of my machines,
+together with the list above.
 
 Stuff:
 
 - Scripts linted with [ShellCheck](https://github.com/koalaman/shellcheck)
 - Trying to follow Google's
   [Shell Style Guide](https://google.github.io/styleguide/shellguide.html)
-- Tested manually in virtual box with the help of
-  [this](https://github.com/myspaghetti/macos-virtualbox) setup script.
+
+## Packages
+
+`packages/unix.tsv` has one line per tool: its Homebrew formula and its Arch
+package, tab-separated. `aur:` marks an AUR package and `-` a tool that kind of
+machine gets elsewhere. Formulas from a tap are written as `owner/tap/name`;
+the installer taps and trusts the tap, because Homebrew refuses formulas from
+untrusted taps.
+
+## Commit signing
+
+Commits are signed with the machine's SSH key, `~/.ssh/id_ed25519`.
+`./install config` sets git up, writes `~/.ssh/allowed_signers` so
+`git log --show-signature` can verify locally, and uploads the key to GitHub as
+a signing key. The upload needs the `admin:ssh_signing_key` scope; the
+installer asks `gh` for it when missing.
 
 ## Tool versions
 
-Mise owns Node and its bundled npm/npx, Bun, Python, uv, pnpm, and personal
+Mise owns Node and its bundled npm/npx, Bun, Python, uv, pnpm, Go, and personal
 npm CLIs. `dotfiles/mise/tools.toml` records the defaults and is linked into
 `~/.config/mise/conf.d/10-dotfiles.toml`. Project `mise.toml` files override
-these defaults. Rust still uses rustup; Homebrew installs system utilities and
-apps. Tigris uses the Homebrew `cloud` profile instead of the old npm package
-whose `t3` alias conflicts with T3 Code.
+these defaults. Rust still uses rustup.
 
-Run `./install_mac install languages` to install mise from Homebrew and these
-defaults.
 The installer adds shell activation and mise shims for login shells. For a
 migration, first remove fnm/asdf/pyenv activation and standalone Bun/pnpm PATH
 blocks from your shell startup files. Restart terminal and coding apps after

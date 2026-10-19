@@ -168,9 +168,6 @@
       "format_on_save": "on",
     },
   },
-  "file_types": {
-    "Clojure": ["jank"],
-  },
   "use_system_window_tabs": true,
   "pane_split_direction_vertical": "right",
   "base_keymap": "VSCode",

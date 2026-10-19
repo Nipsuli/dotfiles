@@ -1,0 +1,48 @@
+# Command-line tools for every machine, macOS or Linux.
+#
+# Columns, tab-separated: Homebrew formula, Arch package. "aur:" marks an AUR
+# package, "-" a tool that machine type gets elsewhere (see the comment above
+# its line). The fleet repository reads this file too, so keep the format.
+
+# Shell
+bat	bat
+btop	btop
+cloc	cloc
+direnv	direnv
+eza	eza
+fzf	fzf
+# Omarchy installs gh through its own mise config.
+gh	-
+git-lfs	git-lfs
+jq	jq
+mise	mise
+ripgrep	ripgrep
+rlwrap	rlwrap
+starship	starship
+# .vimrc uses ag for FZF_DEFAULT_COMMAND.
+the_silver_searcher	the_silver_searcher
+watch	procps-ng
+wget	wget
+
+# Editors
+neovim	neovim
+tmux	tmux
+vim	vim
+
+# Development
+actionlint	actionlint
+age	age
+shellcheck	shellcheck
+borkdude/brew/babashka	aur:babashka-bin
+borkdude/brew/clj-kondo	aur:clj-kondo-bin
+clojure/tools/clojure	clojure
+sbcl	sbcl
+# Go comes from dotfiles/mise/tools.toml on the Macs.
+-	go
+
+# Native builds
+cargo-binstall	cargo-binstall
+gcc	gcc
+llvm	llvm
+ninja	ninja
+sccache	sccache

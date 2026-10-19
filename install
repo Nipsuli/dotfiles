@@ -1,0 +1,63 @@
+#!/bin/bash
+# shellcheck disable=SC2310,SC2312
+#######################################
+# Installs the command-line tools every machine needs and links the config
+# files. Works on macOS (Homebrew) and Arch Linux (pacman).
+#######################################
+set -e
+
+DOTFILES_ROOT="$(cd "$(dirname -- "$0")" && pwd)"
+readonly DOTFILES_ROOT
+export NIPSULI_DOTFILES_ROOT="${DOTFILES_ROOT}"
+
+# shellcheck source=./nipsulidotfiles.sh
+source "${DOTFILES_ROOT}/nipsulidotfiles.sh"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  ./install [all]       packages, then config
+  ./install packages    command-line tools from packages/unix.tsv
+  ./install config      shell, git, editors, mise, and app settings
+  ./install doctor      check both
+
+Examples:
+  EMAIL=you@example.com ./install
+  ./install packages
+  ./install doctor
+EOF
+}
+
+main() {
+  local status=0
+
+  case "${1:-all}" in
+    all)
+      nipsulidotfiles::install_packages
+      nipsulidotfiles::configure
+      nipsulidotfiles::log_success "Restart your terminal before relying on newly added shell hooks."
+      ;;
+    packages)
+      nipsulidotfiles::install_packages
+      ;;
+    config)
+      nipsulidotfiles::configure
+      ;;
+    doctor)
+      nipsulidotfiles::doctor_packages || status=1
+      nipsulidotfiles::doctor_config || status=1
+      return "${status}"
+      ;;
+    -h|--help|help)
+      usage
+      ;;
+    *)
+      usage
+      return 1
+      ;;
+  esac
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi
