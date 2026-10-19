@@ -15,11 +15,14 @@ pacman and the AUR. It has two parts:
 - `./install packages` installs the tools in `packages/unix.tsv`: shell
   helpers, editors, linters, Clojure, and a native build toolchain.
 - `./install config` links the config files and sets up the shell, SSH keys,
-  git commit signing, mise, Rust, Neovim, tmux, Ghostty, and Zed. On macOS it
-  also sets the system defaults and keybindings.
+  git commit signing, mise, Rust, Neovim, tmux, Ghostty, and Zed, plus the
+  macOS defaults and keybindings. It runs on macOS only for now: on Linux the
+  distribution's own config stays (on Omarchy, its LazyVim and shell setup)
+  until there is a setup that works with it.
 
-`./install` runs both; `./install doctor` checks both. Installing never
-upgrades a package; run `brew upgrade` or `pacman -Syu` for that.
+`./install` runs both, or only the packages on Linux; `./install doctor`
+checks them. Installing never upgrades a package; run `brew upgrade` or
+`pacman -Syu` for that.
 
 GUI apps, App Store apps, and per-machine packages are not here. My private
 fleet repository installs, audits, and updates those on each of my machines,

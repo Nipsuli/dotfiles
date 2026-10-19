@@ -245,6 +245,13 @@ nipsulidotfiles::doctor_packages() {
 #######################################
 
 nipsulidotfiles::configure() {
+  # On Linux the distribution's own config stays until there is a setup that
+  # works with it; on Omarchy, linking would replace its LazyVim and shell.
+  if ! nipsulidotfiles::is_macos; then
+    nipsulidotfiles::log_error "Config is macOS-only for now; ./install packages works here."
+    return 1
+  fi
+
   nipsulidotfiles::log_section "Configuring"
   nipsulidotfiles::setup_ssh
   nipsulidotfiles::setup_basic_env
@@ -252,10 +259,8 @@ nipsulidotfiles::configure() {
   nipsulidotfiles::configure_console_styles
   nipsulidotfiles::configure_direnv
   nipsulidotfiles::setup_git
-  if nipsulidotfiles::is_macos; then
-    nipsulidotfiles::setup_keybindings
-    nipsulidotfiles::configure_system_preferences
-  fi
+  nipsulidotfiles::setup_keybindings
+  nipsulidotfiles::configure_system_preferences
   nipsulidotfiles::configure_fzf
   nipsulidotfiles::install_helper_scripts
   nipsulidotfiles::configure_ghostty

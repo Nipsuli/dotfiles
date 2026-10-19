@@ -16,9 +16,9 @@ source "${DOTFILES_ROOT}/nipsulidotfiles.sh"
 usage() {
   cat <<'EOF'
 Usage:
-  ./install [all]       packages, then config
+  ./install [all]       packages, then config (config on macOS only)
   ./install packages    command-line tools from packages/unix.tsv
-  ./install config      shell, git, editors, mise, and app settings
+  ./install config      shell, git, editors, mise, and app settings (macOS)
   ./install doctor      check both
 
 Examples:
@@ -34,6 +34,7 @@ main() {
   case "${1:-all}" in
     all)
       nipsulidotfiles::install_packages
+      nipsulidotfiles::is_macos || return 0
       nipsulidotfiles::configure
       nipsulidotfiles::log_success "Restart your terminal before relying on newly added shell hooks."
       ;;
@@ -45,7 +46,9 @@ main() {
       ;;
     doctor)
       nipsulidotfiles::doctor_packages || status=1
-      nipsulidotfiles::doctor_config || status=1
+      if nipsulidotfiles::is_macos; then
+        nipsulidotfiles::doctor_config || status=1
+      fi
       return "${status}"
       ;;
     -h|--help|help)
