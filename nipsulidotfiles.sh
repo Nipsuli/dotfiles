@@ -692,7 +692,7 @@ nipsulidotfiles::doctor_config() {
 
   nipsulidotfiles::log_section "Doctor config"
 
-  for command in mise node npm pnpm python uv bun go rustup; do
+  for command in mise node npm pnpm python uv bun go java rustup; do
     nipsulidotfiles::doctor_command "${command}" || status=1
   done
   nipsulidotfiles::doctor_file "${HOME}/.ssh/id_ed25519" || status=1

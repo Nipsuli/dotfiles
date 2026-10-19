@@ -52,10 +52,10 @@ installer asks `gh` for it when missing.
 
 ## Tool versions
 
-Mise owns Node and its bundled npm/npx, Bun, Python, uv, pnpm, Go, and personal
-npm CLIs. `dotfiles/mise/tools.toml` records the defaults and is linked into
-`~/.config/mise/conf.d/10-dotfiles.toml`. Project `mise.toml` files override
-these defaults. Rust still uses rustup.
+Mise owns Node and its bundled npm/npx, Bun, Python, uv, pnpm, Go, Java (for
+Clojure), and personal npm CLIs. `dotfiles/mise/tools.toml` records the
+defaults and is linked into `~/.config/mise/conf.d/10-dotfiles.toml`. Project
+`mise.toml` files override these defaults. Rust still uses rustup.
 
 The installer adds shell activation and mise shims for login shells. For a
 migration, first remove fnm/asdf/pyenv activation and standalone Bun/pnpm PATH

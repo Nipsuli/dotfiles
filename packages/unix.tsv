@@ -35,6 +35,8 @@ age	age
 shellcheck	shellcheck
 borkdude/brew/babashka	aur:babashka-bin
 borkdude/brew/clj-kondo	aur:clj-kondo-bin
+# Clojure runs on the JDK from dotfiles/mise/tools.toml on the Macs; Arch's
+# clojure package brings its own.
 clojure/tools/clojure	clojure
 sbcl	sbcl
 # Go comes from dotfiles/mise/tools.toml on the Macs.
