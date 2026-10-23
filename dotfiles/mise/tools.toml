@@ -1,22 +1,22 @@
 # Personal defaults. A project's mise.toml overrides these versions.
 [tools]
 # Before node, so its npm comes ahead of the one bundled with Node on PATH.
-"npm:npm" = "12.2.0"
+"npm:npm" = "12.2.1"
 node = "26"
-bun = "1.4.3"
+bun = "1.4.4"
 python = "3.14"
 go = "1.27"
 # Clojure needs a JDK; the Homebrew clojure formula does not bring one.
 java = "temurin-25"
-uv = "0.13.1"
-"npm:pnpm" = "12.14.0"
-"npm:@openai/codex" = "0.163.0"
-"npm:@anthropic-ai/claude-code" = { version = "2.1.304", allow_builds = ["@anthropic-ai/claude-code"], npm_args = "--ignore-scripts=false" }
-"npm:@opencode/cli" = { version = "2.1.0", allow_builds = ["@opencode/cli"], npm_args = "--ignore-scripts=false" }
+uv = "0.13.5"
+"npm:pnpm" = "12.15.0"
+"npm:@openai/codex" = "0.164.0"
+"npm:@anthropic-ai/claude-code" = { version = "2.1.309", allow_builds = ["@anthropic-ai/claude-code"], npm_args = "--ignore-scripts=false" }
+"npm:@opencode/cli" = { version = "2.1.4", allow_builds = ["@opencode/cli"], npm_args = "--ignore-scripts=false" }
 "npm:@fsouza/prettierd" = "0.29.0"
 "npm:prettier" = "3.9.10"
 "npm:impeccable" = "4.7.0"
-"npm:eas-cli" = "25.2.0"
+"npm:eas-cli" = "25.3.0"
 "npm:0x" = "6.0.0"
 "npm:clinic" = "13.0.0"
 
