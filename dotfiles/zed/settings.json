@@ -87,8 +87,8 @@
   "agent_servers": {
     "codex-acp": {
       "default_config_options": {
-        "model": "gpt-6-astra",
-        "fast-mode": "off",
+        "model": "gpt-6.1-sol",
+        "fast-mode": false,
         "mode": "agent-full-access",
         "reasoning_effort": "medium",
       },
@@ -148,8 +148,15 @@
       "format_on_save": "on",
     },
     "Markdown": {
-      "language_servers": ["oxfmt", "..."],
-      "formatter": { "language_server": { "name": "oxfmt" } },
+      "formatter": {
+        "external": {
+          "command": "oxfmt",
+          "arguments": [
+            "--stdin-filepath",
+            "{buffer_path}"
+          ]
+        }
+      },
       "format_on_save": "on",
     },
     "Java": {
