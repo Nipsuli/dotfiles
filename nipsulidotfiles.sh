@@ -658,12 +658,6 @@ nipsulidotfiles::configure_mise() {
   (cd "${HOME}" && mise install)
   (cd "${HOME}" && mise exec node -- corepack enable yarn)
   mise reshim
-
-  # Running apps can inherit a PATH without mise shims. Keep CLI entry points
-  # in the user bin directory and let mise select the installed versions.
-  mkdir -p "${HOME}/.local/bin"
-  ln -sf "${HOME}/.local/share/mise/shims/codex" "${HOME}/.local/bin/codex"
-  ln -sf "${HOME}/.local/share/mise/shims/claude" "${HOME}/.local/bin/claude"
 }
 
 nipsulidotfiles::configure_rust() {

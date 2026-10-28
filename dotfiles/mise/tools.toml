@@ -10,9 +10,8 @@ go = "1.27"
 java = "temurin-25"
 uv = "0.13.5"
 "npm:pnpm" = "12.15.0"
-"npm:@openai/codex" = "0.164.0"
-"npm:@anthropic-ai/claude-code" = { version = "2.1.309", allow_builds = ["@anthropic-ai/claude-code"], npm_args = "--ignore-scripts=false" }
-"npm:@opencode/cli" = { version = "2.1.4", allow_builds = ["@opencode/cli"], npm_args = "--ignore-scripts=false" }
+# Not Claude Code, Codex, or opencode: T3 Code updates them, which it cannot do
+# for a copy from mise. The fleet's work runner installs them in ~/.local/bin.
 "npm:@fsouza/prettierd" = "0.29.0"
 "npm:prettier" = "3.9.10"
 "npm:impeccable" = "4.7.0"
